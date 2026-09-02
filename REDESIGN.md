@@ -245,3 +245,25 @@ individuals); citation with BibTeX (Pérez & Granger, CiSE 2007).
   review), an alphabetical avatar wall without numbers, and a list of
   contributions a commit graph does not show.
 - **Historical URLs.** Unchanged. `/archive` is only an index.
+
+## 10. Alternative: the "status line" exploration
+
+A second designer worked from scratch, without looking at the current site or
+this branch's pages, on branch `design-b-exploration` (plain HTML/CSS in
+`explorations/design-b/`, with `CONCEPT.md`, a home page, an install page and
+screenshots under `shots/`). Its concept: the terminal's chrome becomes the
+site's chrome. Navigation is a tmux-style status line pinned to the bottom
+of the viewport with numbered "windows" that light up as you scroll; the
+page above it is one quiet left-aligned column set in STIX Two Text with IBM
+Plex Mono for transcripts, and the only accents are the prompt's own green
+(`In`) and red (`Out`). It is worth comparing against the main prototype for
+tone: it is more editorial and more restrained, and it does not carry the
+colour-theme system, which would need a separate hook.
+
+Open it with:
+
+```
+git worktree add /tmp/design-b design-b-exploration
+open /tmp/design-b/explorations/design-b/index.html
+```
+
