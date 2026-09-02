@@ -16,7 +16,7 @@
  *   {{cursor}}      blinking cursor              {{dim:text}} muted text
  *   {{err:text}}    red text                     {{hl:text}}  orange highlight
  */
-import { codeToTokens } from 'shiki';
+import { codeToTokensWithThemes } from 'shiki';
 
 interface Props {
   session: string;
@@ -57,11 +57,18 @@ function renderMarker(m: string): string {
 
 async function highlight(code: string): Promise<string> {
   if (code.trim() === '') return esc(code);
-  const { tokens } = await codeToTokens(code, { lang: 'python', theme: 'github-dark-default' });
-  return tokens
+  const lines = await codeToTokensWithThemes(code, {
+    lang: 'python',
+    themes: { light: 'github-light-default', dark: 'github-dark-default' },
+  });
+  return lines
     .map((line) =>
       line
-        .map((t) => (t.color ? `<span style="color:${t.color}">${esc(t.content)}</span>` : esc(t.content)))
+        .map((t) => {
+          const l = t.variants.light?.color;
+          const d = t.variants.dark?.color;
+          return l && d ? `<span class="tk" style="--sl:${l};--sd:${d}">${esc(t.content)}</span>` : esc(t.content);
+        })
         .join(''),
     )
     .join('\n');

@@ -9,7 +9,11 @@ Short reference for anyone editing the site. Tokens and components live in
   it" above the fold. Everything else supports that.
 - Show, don't tell: real transcripts rendered with `IPythonSession`, not
   feature adjectives.
-- Light, text-first pages with a dark terminal as the only "loud" element.
+- Light mode is light everywhere, terminals included: transcripts use a
+  light palette like IPython's own `lightbg` scheme and switch to the navy
+  `linux`-style palette in dark mode. The only coloured surface in light mode
+  is the hero, which is painted with the active colour theme's gradient so
+  the pride and seasonal themes stay visible.
 - Sections are numbered with the IPython prompt motif: `In [1]:`, `In [2]:`.
 - Colour themes (including the pride themes) only change `--theme-primary`,
   `--theme-secondary`, `--theme-accent`. Text colours are fixed and WCAG-AA on
@@ -25,7 +29,7 @@ Short reference for anyone editing the site. Tokens and components live in
 | `border-line` / `-strong`        | Hairlines                                 |
 | `text-brand-text`                | Links and accents (contrast-clamped)      |
 | `bg-brand`, `bg-brand-soft`      | Primary button, soft tint                 |
-| `bg-term`, `text-term-ink`       | Terminal surface (always dark)            |
+| `bg-term`, `text-term-ink`       | Terminal surface (light or navy by mode)  |
 | `text-prompt-in` / `-out`        | Green In[] and red Out[] prompt colours   |
 | `font-mono`                      | JetBrains Mono (self-hosted)              |
 
@@ -38,8 +42,8 @@ Classes: `container-x` (max-w-6xl), `container-prose` (max-w-3xl), `eyebrow`,
 - `layouts/PageLayout.astro` – nav, standard header (`title`, `eyebrow`,
   `lede`), footer. `noHeader` for custom heroes.
 - `layouts/ArchiveLayout.astro` – historical pages.
-- `Section.astro` – `n`, `id`, `title`, `lede`, `tone="default|alt|dark"`,
-  `narrow`.
+- `Section.astro` – `n`, `id`, `title`, `lede`, `tone="default|alt|accent"`,
+  `narrow`. `accent` is a theme-tinted band, never a dark one.
 - `IPythonSession.astro` – `session` (transcript string), `title`,
   `chrome=false`. Prompt lines are detected (`In [1]:`, `...:`, `Out[1]:`,
   `$ `, `ipdb> `). Inline markers: `{{ghost:text}}`, `{{cursor}}`,

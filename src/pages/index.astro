@@ -8,6 +8,8 @@ import IPythonSession from '../components/IPythonSession.astro';
 import AnimatedTerminal from '../components/AnimatedTerminal.tsx';
 import LiveVersion from '../components/LiveVersion.tsx';
 import Comparison from '../components/home/Comparison.astro';
+import VelvetSilkBackground from '../components/VelvetSilkBackground.tsx';
+import SunBackground from '../components/SunBackground.tsx';
 import { buildData, formatDate, compact } from '../lib/buildData';
 import { features, homeFeatureIds } from '../data/features';
 import { ecosystem, clients } from '../data/ecosystem';
@@ -83,18 +85,20 @@ const community = [
 >
   {/* ------------------------------------------------------------- hero --- */}
   <div class="brand-strip"></div>
-  <section class="relative overflow-hidden bg-term text-term-ink">
-    <div class="bg-dots absolute inset-0 opacity-60" aria-hidden="true"></div>
+  <section class="hero gradient-hero relative overflow-hidden">
+    <VelvetSilkBackground client:idle />
+    <SunBackground client:idle />
+    <div class="bg-dots absolute inset-0 opacity-50" aria-hidden="true"></div>
     <div class="hero-glow absolute inset-0" aria-hidden="true"></div>
 
     <div class="container-x relative py-16 sm:py-24">
       <div class="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16">
-        <div>
-          <p class="font-mono text-sm text-prompt-in">In [1]: import IPython</p>
+        <div class="hero-copy">
+          <p class="font-mono text-sm text-white/80">In [1]: import IPython</p>
           <h1 class="mt-4 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
             Python, interactively.
           </h1>
-          <p class="mt-5 max-w-xl text-lg leading-relaxed text-term-ink/85">
+          <p class="mt-5 max-w-xl text-lg leading-relaxed text-white/90">
             IPython is the enhanced interactive shell for Python and the engine behind Jupyter
             kernels. Tab completion, rich introspection, magic commands, and a terminal that stays
             out of your way — since 2001.
@@ -119,7 +123,7 @@ const community = [
             </a>
           </div>
 
-          <p class="mt-6 font-mono text-xs text-term-muted sm:text-sm">
+          <p class="mt-6 font-mono text-xs text-white/75 sm:text-sm">
             v<LiveVersion client:idle initial={buildData.version} /> · released {formatDate(buildData.releaseDate)} · Python {buildData.requiresPython}
           </p>
         </div>
@@ -241,27 +245,27 @@ const community = [
   <Section
     n={5}
     id="ecosystem"
-    tone="dark"
+    tone="accent"
     title="Part of Jupyter"
     lede="IPython executes the code. ipykernel speaks the Jupyter protocol on its behalf. Everything else is a client."
   >
-    <div class="rounded-(--radius-card) border border-term-line bg-term-2 p-6 sm:p-8">
+    <div class="rounded-(--radius-card) border border-line bg-surface p-6 sm:p-8">
       <div class="flex flex-col items-stretch gap-4 lg:flex-row">
         <div class="diagram-node">
           <p class="font-mono text-sm font-semibold text-prompt-in">IPython</p>
-          <p class="mt-1 text-xs text-term-muted">Runs your code, completion, history, magics</p>
+          <p class="mt-1 text-xs text-ink-muted">Runs your code, completion, history, magics</p>
         </div>
         <span class="diagram-arrow" aria-hidden="true">→</span>
         <div class="diagram-node">
-          <p class="font-mono text-sm font-semibold text-term-ink">ipykernel</p>
-          <p class="mt-1 text-xs text-term-muted">Wraps it in the Jupyter messaging protocol</p>
+          <p class="font-mono text-sm font-semibold text-ink">ipykernel</p>
+          <p class="mt-1 text-xs text-ink-muted">Wraps it in the Jupyter messaging protocol</p>
         </div>
         <span class="diagram-arrow" aria-hidden="true">→</span>
         <div class="diagram-node diagram-clients">
-          <p class="font-mono text-sm font-semibold text-term-ink">Clients</p>
+          <p class="font-mono text-sm font-semibold text-ink">Clients</p>
           <ul class="mt-2 flex flex-wrap gap-1.5">
             {clients.map((c) => (
-              <li class="rounded-full border border-term-line px-2.5 py-0.5 font-mono text-xs text-term-muted">{c}</li>
+              <li class="rounded-full border border-line px-2.5 py-0.5 font-mono text-xs text-ink-muted">{c}</li>
             ))}
           </ul>
         </div>
@@ -271,13 +275,13 @@ const community = [
     <ul class="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
       {ecosystem.map((p) => (
         <li>
-          <p class="font-mono text-xs tracking-wide text-term-muted uppercase">{p.role}</p>
+          <p class="font-mono text-xs tracking-wide text-ink-muted uppercase">{p.role}</p>
           <h3 class="mt-1 text-base font-semibold text-white">
             <a href={p.href} target="_blank" rel="noopener" class="text-white no-underline hover:underline">
-              {p.name} <span aria-hidden="true" class="text-term-muted">↗</span>
+              {p.name} <span aria-hidden="true" class="text-ink-muted">↗</span>
             </a>
           </h3>
-          <p class="mt-1.5 text-sm leading-relaxed text-term-muted">{p.desc}</p>
+          <p class="mt-1.5 text-sm leading-relaxed text-ink-muted">{p.desc}</p>
         </li>
       ))}
     </ul>
@@ -307,8 +311,8 @@ const community = [
   /* Brand glow behind the hero terminal, derived from the theme variables. */
   .hero-glow {
     background:
-      radial-gradient(60rem 30rem at 78% 18%, color-mix(in oklab, var(--brand-2) 34%, transparent), transparent 70%),
-      radial-gradient(45rem 28rem at 8% 88%, color-mix(in oklab, var(--brand) 40%, transparent), transparent 70%);
+      radial-gradient(60rem 30rem at 78% 18%, rgb(255 255 255 / 0.10), transparent 70%),
+      radial-gradient(45rem 28rem at 8% 88%, rgb(0 0 0 / 0.16), transparent 70%);
     pointer-events: none;
   }
 
@@ -317,9 +321,9 @@ const community = [
     flex-direction: column;
     justify-content: center;
     flex: 1 1 0;
-    border: 1px solid var(--term-line);
+    border: 1px solid var(--line);
     border-radius: 0.75rem;
-    background: color-mix(in oklab, var(--term) 65%, transparent);
+    background: var(--surface-2);
     padding: 0.95rem 1.1rem;
   }
 
@@ -330,7 +334,7 @@ const community = [
   .diagram-arrow {
     display: block;
     text-align: center;
-    color: color-mix(in oklab, var(--brand-2) 60%, var(--term-muted));
+    color: var(--brand-text);
     font-size: 1.35rem;
     line-height: 1;
     transform: rotate(90deg);

@@ -17,6 +17,8 @@ async def main():
         for pg in pages:
             page = await ctx.new_page()
             if dark: await page.add_init_script("localStorage.setItem('theme','dark')")
+            theme = os.environ.get("THEME")
+            if theme: await page.add_init_script("localStorage.setItem('colorTheme', JSON.stringify({themeId:'%s', date:'2099-01-01'}))" % theme)
             await page.goto(f"http://127.0.0.1:{PORT}/{pg}", wait_until="networkidle", timeout=60000)
             await page.wait_for_timeout(800)
             name = (pg.strip('/').replace('/','-') or 'home')

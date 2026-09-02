@@ -173,12 +173,13 @@ const EXAMPLE_DELAY = 4200; // pause on the finished transcript
 
 const MARKER = /(\{\{(?:ghost|kbd|dim|err|hl):[^}]*\}\}|\{\{cursor\}\})/;
 
-// github-dark-default, to match the Shiki theme used by IPythonSession.
+// Colours come from the mode-aware terminal tokens in global.css so the
+// terminal is light in light mode and navy in dark mode, like IPythonSession.
 const SYNTAX = {
-  keyword: "#ff7b72",
-  string: "#a5d6ff",
-  number: "#79c0ff",
-  magic: "#d2a8ff",
+  keyword: "var(--syn-kw)",
+  string: "var(--syn-str)",
+  number: "var(--syn-num)",
+  magic: "var(--syn-magic)",
   comment: "var(--term-muted)",
 } as const;
 

@@ -20,7 +20,7 @@ const trimmed = code.replace(/^\n+|\n+$/g, '');
     </figcaption>
   )}
   <div class="relative">
-    <Code code={trimmed} lang={lang as any} theme="github-dark-default" />
+    <Code code={trimmed} lang={lang as any} themes={{ light: 'github-light-default', dark: 'github-dark-default' }} defaultColor="light" />
     {copy && (
       <button type="button" class="copy-btn no-print absolute top-2.5 right-2.5" data-copy={trimmed} aria-label="Copy code to clipboard">Copy</button>
     )}

@@ -85,19 +85,25 @@
   --ink-muted: #475569;
   --ink-faint: #64748b;
   --surface: #ffffff;
-  --surface-2: #f5f8f9;
-  --surface-3: #e9eff2;
+  --surface-2: color-mix(in oklab, var(--theme-primary) 4%, #f7f9fa);
+  --surface-3: color-mix(in oklab, var(--theme-primary) 7%, #ebf0f2);
   --line: #dbe3e8;
   --line-strong: #b7c4cd;
 
-  /* Terminal surface (always dark, like the real thing). */
-  --term: #0b1220;
-  --term-2: #111a2e;
-  --term-line: #22304d;
-  --term-ink: #e6edf3;
-  --term-muted: #8b98a9;
-  --prompt-in: #56d364;   /* IPython's green In[] prompt */
-  --prompt-out: #ff7b72;  /* IPython's red Out[] prompt */
+  /* Terminal surfaces follow the mode, like IPython's own `lightbg` and
+     `linux` colour schemes: light paper here, navy in .dark below. */
+  --term: #f4f7f9;
+  --term-2: #e8eef2;
+  --term-line: #cfdae2;
+  --term-ink: #1f2328;
+  --term-muted: #66788a;
+  --prompt-in: #1a7f37;   /* IPython's green In[] prompt (AA on light) */
+  --prompt-out: #cf222e;  /* IPython's red Out[] prompt */
+  --syn-kw: #cf222e;
+  --syn-str: #0a3069;
+  --syn-num: #0550ae;
+  --syn-magic: #8250df;
+  --term-hl: #953800;
 
   /* Kept for the older islands. */
   --ipython-dark: #0b1220;
@@ -117,10 +123,23 @@
   --ink-muted: #a9b4c2;
   --ink-faint: #8b98a9;
   --surface: #0b1220;
-  --surface-2: #111a2e;
-  --surface-3: #182339;
+  --surface-2: color-mix(in oklab, var(--theme-secondary) 6%, #111a2e);
+  --surface-3: color-mix(in oklab, var(--theme-secondary) 9%, #182339);
   --line: #223052;
   --line-strong: #34466e;
+
+  --term: #0b1220;
+  --term-2: #111a2e;
+  --term-line: #22304d;
+  --term-ink: #e6edf3;
+  --term-muted: #8b98a9;
+  --prompt-in: #56d364;
+  --prompt-out: #ff7b72;
+  --syn-kw: #ff7b72;
+  --syn-str: #a5d6ff;
+  --syn-num: #79c0ff;
+  --syn-magic: #d2a8ff;
+  --term-hl: #ffa657;
 }
 
 /* Guarantee readable link/accent text whatever colour a theme picks:
@@ -264,6 +283,50 @@
     background-clip: text;
     color: transparent;
   }
+  /* Home hero: the theme gradient (pride/seasonal themes override
+     .gradient-hero with their flags); darkened with an overlay in dark mode. */
+  .hero {
+    position: relative;
+    color: #fff;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.22));
+    pointer-events: none;
+  }
+  .dark .hero::before {
+    background: rgb(11 18 32 / 0.72);
+  }
+  .hero .cmd, .hero .ipy-session, .hero .terminal { text-shadow: none; }
+  /* Flag themes have white and pale bands: give the copy a glass panel. */
+  [data-color-theme="rainbow"] .hero-copy,
+  [data-color-theme="gay"] .hero-copy,
+  [data-color-theme="lesbian"] .hero-copy,
+  [data-color-theme="trans"] .hero-copy {
+    background: rgb(15 23 42 / 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin: -1.5rem;
+  }
+  @media (min-width: 640px) {
+    [data-color-theme="rainbow"] .hero-copy,
+    [data-color-theme="gay"] .hero-copy,
+    [data-color-theme="lesbian"] .hero-copy,
+    [data-color-theme="trans"] .hero-copy { padding: 2rem; margin: -2rem; }
+  }
+
+  /* Theme-tinted band for sections that should stand out without going dark. */
+  .section-accent {
+    background: color-mix(in oklab, var(--theme-primary) 9%, var(--surface));
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
   .brand-strip {
     height: 4px;
     width: 100%;
@@ -311,10 +374,13 @@
   .ipy-in { color: var(--prompt-in); font-weight: 600; }
   .ipy-out { color: var(--prompt-out); font-weight: 600; }
   .ipy-shell { color: var(--term-muted); }
-  .ipy-ipdb { color: #d2a8ff; font-weight: 600; }
+  .ipy-ipdb { color: var(--syn-magic); font-weight: 600; }
   .ipy-text { color: var(--term-muted); }
-  .ipy-err { color: #ff7b72; }
-  .ipy-hl { color: #ffa657; }
+  .ipy-err { color: var(--syn-kw); }
+  .ipy-hl { color: var(--term-hl); }
+  /* Shiki dual-theme tokens: --sl (light) / --sd (dark) set inline per span. */
+  .tk { color: var(--sl); }
+  .dark .tk { color: var(--sd); }
   .ipy-dim { color: var(--term-muted); }
   .ipy-ghost { color: var(--term-muted); opacity: 0.75; }
   .ipy-cursor {
@@ -343,8 +409,10 @@
   .codeblock pre {
     @apply overflow-x-auto rounded-(--radius-card) border border-term-line p-4 text-[0.8125rem] leading-[1.65];
     background-color: var(--term) !important;
+    color: var(--term-ink) !important;
   }
   .codeblock code { background: none; padding: 0; font-size: inherit; }
+  .dark .codeblock pre span { color: var(--shiki-dark) !important; }
 
   /* Data tables (cheat sheet). */
   .table-plain { @apply w-full text-sm; }
