@@ -1,0 +1,125 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import Section from '../components/Section.astro';
+import Card from '../components/Card.astro';
+import CommandBlock from '../components/CommandBlock.astro';
+import { links } from '../data/site';
+import { majorSeries, nineHighlights, releasePolicy } from '../data/releases';
+import { buildData, formatDate } from '../lib/buildData';
+
+/** Series dates are ISO except the 0.x row, which is a bare year. */
+function seriesDate(value: string): string {
+  return /^\d{4}$/.test(value) ? value : formatDate(value);
+}
+
+const policyCards = [
+  { title: 'Cadence', text: releasePolicy.cadence },
+  { title: 'Python support', text: releasePolicy.python, link: { href: links.spec0, label: 'SPEC 0' } },
+  { title: 'Deprecations', text: releasePolicy.deprecation },
+];
+---
+
+<PageLayout
+  title="Releases"
+  eyebrow="In [1]:"
+  description={`IPython ${buildData.version} was published on ${formatDate(buildData.releaseDate)}. Release cadence, the Python support window, highlights of the 9.x series and the history of every major series.`}
+  lede={`The current release is ${buildData.version}, published ${formatDate(buildData.releaseDate)}.`}
+>
+  <div slot="header-extra" class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-end">
+    <CommandBlock command="pip install -U ipython" label="Upgrade" class="min-w-0 sm:max-w-md sm:flex-1" />
+    <a href={links.docsWhatsNew9} target="_blank" rel="noopener" class="btn btn-secondary self-start">
+      Full release notes <span aria-hidden="true">↗</span>
+    </a>
+  </div>
+
+  <Section n={2} title="How releases work" lede="Predictable dates, a documented support window, and deprecations you can see coming.">
+    <div class="grid gap-5 md:grid-cols-3">
+      {policyCards.map((c) => (
+        <div class="card">
+          <h3 class="text-base font-semibold text-ink">{c.title}</h3>
+          <p class="mt-2 text-sm text-ink-muted">
+            {c.text}
+            {c.link && (
+              <>
+                {' '}
+                <a href={c.link.href} target="_blank" rel="noopener">Read {c.link.label} <span aria-hidden="true">↗</span></a>.
+              </>
+            )}
+          </p>
+        </div>
+      ))}
+    </div>
+  </Section>
+
+  <Section n={3} title="Highlights of the 9.x series" lede="Newest first. Every entry links onward from the full release notes." tone="alt">
+    <ol class="relative border-l border-line pl-6 sm:pl-8">
+      {nineHighlights.map((h) => (
+        <li class="relative pb-9 last:pb-0">
+          <span
+            aria-hidden="true"
+            class="absolute top-2 -left-[1.65rem] h-2.5 w-2.5 rounded-full border-2 border-surface-2 bg-brand sm:-left-[2.15rem]"
+          ></span>
+          <div class="sm:flex sm:gap-8">
+            <div class="sm:w-40 sm:shrink-0">
+              <p class="font-mono text-sm font-semibold text-brand-text">{h.version}</p>
+              <p class="font-mono text-xs text-ink-faint">{formatDate(h.date)}</p>
+            </div>
+            <div class="mt-1 sm:mt-0">
+              <h3 class="text-base font-semibold text-ink">{h.title}</h3>
+              <p class="mt-1.5 text-sm text-ink-muted">{h.text}</p>
+            </div>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </Section>
+
+  <Section n={4} title="Major series" lede="Twenty-five years of releases, and what each series changed.">
+    <!-- Stacked on phones, tabular from sm up: the notes column is too long to scroll for. -->
+    <ul class="sm:hidden">
+      {majorSeries.map((s) => (
+        <li class="border-b border-line py-4 last:border-0">
+          <p class="flex items-baseline justify-between gap-4">
+            <span class="font-mono text-sm font-semibold text-ink">{s.series}</span>
+            <span class="font-mono text-xs text-ink-faint">{seriesDate(s.first)}</span>
+          </p>
+          <p class="mt-1.5 text-sm text-ink-muted">{s.note}</p>
+        </li>
+      ))}
+    </ul>
+    <div class="hidden sm:block">
+      <table class="table-plain">
+        <thead>
+          <tr>
+            <th scope="col">Series</th>
+            <th scope="col">First release</th>
+            <th scope="col">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {majorSeries.map((s) => (
+            <tr>
+              <td>{s.series}</td>
+              <td class="whitespace-nowrap">{seriesDate(s.first)}</td>
+              <td>{s.note}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </Section>
+
+  <Section n={5} title="Where to read more" tone="alt">
+    <div class="grid gap-5 md:grid-cols-3">
+      <Card title="What's new" href={links.docsWhatsNew} external>
+        Release notes for every version of IPython, back to the 0.x era.
+      </Card>
+      <Card title="Release history on PyPI" href={links.pypi} external>
+        Every published version with its upload date, plus the wheels and source archives.
+      </Card>
+      <Card title="Tags on GitHub" href="https://github.com/ipython/ipython/tags" external>
+        The git tag for each release, and the source tree exactly as it was published.
+      </Card>
+    </div>
+  </Section>
+</PageLayout>

@@ -1,7 +1,345 @@
 ---
 import PageLayout from '../layouts/PageLayout.astro';
+import Section from '../components/Section.astro';
+import Card from '../components/Card.astro';
+import Callout from '../components/Callout.astro';
+import Stat from '../components/Stat.astro';
+import IPythonSession from '../components/IPythonSession.astro';
+import AnimatedTerminal from '../components/AnimatedTerminal.tsx';
+import LiveVersion from '../components/LiveVersion.tsx';
+import Comparison from '../components/home/Comparison.astro';
+import { buildData, formatDate, compact } from '../lib/buildData';
+import { features, homeFeatureIds } from '../data/features';
+import { ecosystem, clients } from '../data/ecosystem';
+import { nineHighlights } from '../data/releases';
+import { links } from '../data/site';
+import { baseUrl } from '../lib/utils';
+
+const homeFeatures = homeFeatureIds
+  .map((id) => features.find((f) => f.id === id))
+  .filter((f): f is (typeof features)[number] => Boolean(f));
+
+const highlightVersions = ['9.17', '9.16', '9.13', '9.0'];
+const highlights = highlightVersions
+  .map((v) => nineHighlights.find((h) => h.version === v))
+  .filter((h): h is (typeof nineHighlights)[number] => Boolean(h));
+
+const shortDate = (iso: string) => formatDate(iso, { year: 'numeric', month: 'short' });
+
+const mobileSession = `
+  $ ipython
+  IPython ${buildData.version} -- An enhanced Interactive Python.
+
+  In [1]: import json
+
+  In [2]: json.dumps?
+  Signature: json.dumps(obj, *, skipkeys=False, ...)
+  Docstring: Serialize obj to a JSON formatted str.
+  Type:      function
+
+  In [3]: %timeit sorted(range(10_000), reverse=True)
+  146 μs ± 1.9 μs per loop (mean ± std. dev. of 7 runs)
+`;
+
+const threeThings = [
+  {
+    title: 'The terminal shell',
+    body:
+      'Run <code>ipython</code> and you get the prompt this site is about: completion that inspects your live objects, autosuggestions from your history, <code>obj?</code> introspection, magic commands, readable tracebacks and a debugger one word away.',
+    href: baseUrl('learn'),
+    linkText: 'Take the tour →',
+  },
+  {
+    title: 'The kernel behind Jupyter',
+    body:
+      '<code>ipykernel</code> wraps this same shell in the Jupyter messaging protocol. Every Python notebook — JupyterLab, Jupyter Notebook, VS Code, Colab — executes your cells through IPython.',
+    href: links.docsKernel,
+    linkText: 'Kernel install docs ↗',
+    external: true,
+  },
+  {
+    title: 'A library',
+    body:
+      '<code>IPython.display</code> renders images, HTML and Markdown from your own code, <code>IPython.embed()</code> drops a shell into a running program, and <code>get_ipython()</code> lets a library detect and configure the session it runs in.',
+    href: links.docsEmbedding,
+    linkText: 'Embedding docs ↗',
+    external: true,
+  },
+];
+
+const community = [
+  { title: 'Documentation', href: links.docs, body: 'Tutorials, configuration, magics and the full API reference on Read the Docs.' },
+  { title: 'Ask on Discourse', href: links.discourse, body: 'The Jupyter forum. Usage questions, ideas and release announcements.' },
+  { title: 'Chat on Zulip', href: links.zulip, body: 'Real-time chat with the Jupyter and IPython maintainers.' },
+  { title: 'Contribute on GitHub', href: links.github, body: 'Issues, pull requests and good first issues. Docs fixes are very welcome.' },
+];
 ---
 
-<PageLayout title="Home" description="Placeholder while the redesign is in progress.">
-  <div class="container-x py-16"><p class="text-ink-muted">This page is being rebuilt.</p></div>
+<PageLayout
+  noHeader
+  bare
+  title="IPython"
+  description="IPython is the enhanced interactive Python shell and the kernel behind Jupyter notebooks: tab completion, autosuggestions, introspection, magic commands and readable tracebacks."
+>
+  {/* ------------------------------------------------------------- hero --- */}
+  <div class="brand-strip"></div>
+  <section class="relative overflow-hidden bg-term text-term-ink">
+    <div class="bg-dots absolute inset-0 opacity-60" aria-hidden="true"></div>
+    <div class="hero-glow absolute inset-0" aria-hidden="true"></div>
+
+    <div class="container-x relative py-16 sm:py-24">
+      <div class="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16">
+        <div>
+          <p class="font-mono text-sm text-prompt-in">In [1]: import IPython</p>
+          <h1 class="mt-4 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+            Python, interactively.
+          </h1>
+          <p class="mt-5 max-w-xl text-lg leading-relaxed text-term-ink/85">
+            IPython is the enhanced interactive shell for Python and the engine behind Jupyter
+            kernels. Tab completion, rich introspection, magic commands, and a terminal that stays
+            out of your way — since 2001.
+          </p>
+
+          <div class="mt-8 max-w-md">
+            <div class="cmd">
+              <span class="cmd-prompt" aria-hidden="true">$</span>
+              <code>pip install ipython</code>
+              <button
+                type="button"
+                class="copy-btn no-print"
+                data-copy="pip install ipython"
+                aria-label="Copy &quot;pip install ipython&quot; to clipboard">Copy</button>
+            </div>
+          </div>
+
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            <a href={baseUrl('install')} class="btn btn-primary btn-lg">Install</a>
+            <a href={links.docs} target="_blank" rel="noopener" class="btn btn-on-dark btn-lg">
+              Read the docs <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+
+          <p class="mt-6 font-mono text-xs text-term-muted sm:text-sm">
+            v<LiveVersion client:idle initial={buildData.version} /> · released {formatDate(buildData.releaseDate)} · Python {buildData.requiresPython}
+          </p>
+        </div>
+
+        <div>
+          <div class="hidden lg:block">
+            <AnimatedTerminal client:load version={buildData.version} />
+          </div>
+          <div class="lg:hidden">
+            <IPythonSession session={mobileSession} title="ipython" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* ------------------------------------------------------- fact strip --- */}
+  <Section tone="alt" class="!py-10 sm:!py-12">
+    <div class="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
+      <Stat value={buildData.version} label="Latest release" sub={formatDate(buildData.releaseDate)} href={baseUrl('releases')} />
+      <Stat value={compact(buildData.stars)} label="Stars on GitHub" sub="ipython/ipython" href={links.github} />
+      <Stat value="2001" label="First released" sub="by Fernando Pérez" href={baseUrl('about')} />
+      <Stat value="Monthly" label="Release cadence" sub="minor releases in the 9.x series" href={baseUrl('releases')} />
+      <Stat value="≥ 3.11" label="Python supported" sub="following SPEC 0" href={baseUrl('install')} />
+    </div>
+  </Section>
+
+  {/* --------------------------------------------- three things / vs Jupyter */}
+  <Section
+    n={2}
+    id="what"
+    title="Three things called IPython"
+    lede="One project, three ways to meet it. Most people use at least two without noticing."
+  >
+    <div class="grid gap-5 md:grid-cols-3">
+      {threeThings.map((t) => (
+        <div class="card flex flex-col">
+          <h3 class="text-base font-semibold text-ink">{t.title}</h3>
+          <p class="mt-2 text-sm leading-relaxed text-ink-muted" set:html={t.body} />
+          <a
+            href={t.href}
+            target={t.external ? '_blank' : undefined}
+            rel={t.external ? 'noopener' : undefined}
+            class="mt-auto inline-block pt-4 text-sm font-medium no-underline hover:underline"
+          >{t.linkText}</a>
+        </div>
+      ))}
+    </div>
+
+    <Callout class="mt-8" title="IPython or Jupyter?" tone="info">
+      IPython is the Python shell and the kernel that executes your code; Jupyter is the notebook
+      interface, the file format and the protocol around it, with kernels for dozens of languages.
+      If you run a Python notebook anywhere — JupyterLab, VS Code, Colab — you are already using
+      IPython.
+    </Callout>
+  </Section>
+
+  {/* ------------------------------------------------------- why IPython --- */}
+  <Section
+    n={3}
+    id="why"
+    title="Why not the plain REPL?"
+    lede="Python 3.13 gave the built-in REPL colours, multi-line editing and a friendlier exit. IPython starts there and keeps going: it inspects your live objects, remembers everything you ran, and turns the tedious parts into one-word commands."
+  >
+    <div class="space-y-16 sm:space-y-20">
+      {homeFeatures.map((f, i) => (
+        <div class="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
+          <div class:list={[i % 2 === 1 && 'lg:order-2']}>
+            <h3 class="text-xl font-semibold text-ink sm:text-2xl">{f.title}</h3>
+            <p class="mt-3 text-base leading-relaxed text-ink-muted">{f.blurb}</p>
+            <a
+              href={`${baseUrl('learn')}#${f.id}`}
+              class="mt-auto inline-block pt-4 text-sm font-medium no-underline hover:underline"
+            >Learn more →</a>
+          </div>
+          <div class:list={[i % 2 === 1 && 'lg:order-1']}>
+            <IPythonSession session={f.session} title="ipython" />
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="mt-20 max-w-2xl">
+      <h3 class="text-2xl font-bold">How it compares</h3>
+      <p class="mt-3 text-ink-muted">Side by side with the other Python shells. No shell is wrong; they are built for different lengths of session.</p>
+    </div>
+    <div class="mt-6">
+      <Comparison />
+    </div>
+
+    <div class="mt-16 flex justify-center">
+      <a href={baseUrl('learn')} class="btn btn-primary btn-lg">See the full tour</a>
+    </div>
+  </Section>
+
+  {/* ---------------------------------------------------- what's new in 9 --- */}
+  <Section
+    n={4}
+    id="new"
+    tone="alt"
+    title="What's new in 9"
+    lede="IPython 9 arrived in February 2025 and ships a minor release most months. A few highlights."
+  >
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {highlights.map((h) => (
+        <div class="card flex h-full flex-col">
+          <span class="chip self-start">{h.version} · {shortDate(h.date)}</span>
+          <h3 class="mt-3 text-base font-semibold text-ink">{h.title}</h3>
+          <p class="mt-2 text-sm leading-relaxed text-ink-muted">{h.text}</p>
+        </div>
+      ))}
+    </div>
+    <p class="mt-8">
+      <a href={baseUrl('releases')} class="text-sm font-medium no-underline hover:underline">All releases →</a>
+    </p>
+  </Section>
+
+  {/* ----------------------------------------------------- part of Jupyter --- */}
+  <Section
+    n={5}
+    id="ecosystem"
+    tone="dark"
+    title="Part of Jupyter"
+    lede="IPython executes the code. ipykernel speaks the Jupyter protocol on its behalf. Everything else is a client."
+  >
+    <div class="rounded-(--radius-card) border border-term-line bg-term-2 p-6 sm:p-8">
+      <div class="flex flex-col items-stretch gap-4 lg:flex-row">
+        <div class="diagram-node">
+          <p class="font-mono text-sm font-semibold text-prompt-in">IPython</p>
+          <p class="mt-1 text-xs text-term-muted">Runs your code, completion, history, magics</p>
+        </div>
+        <span class="diagram-arrow" aria-hidden="true">→</span>
+        <div class="diagram-node">
+          <p class="font-mono text-sm font-semibold text-term-ink">ipykernel</p>
+          <p class="mt-1 text-xs text-term-muted">Wraps it in the Jupyter messaging protocol</p>
+        </div>
+        <span class="diagram-arrow" aria-hidden="true">→</span>
+        <div class="diagram-node diagram-clients">
+          <p class="font-mono text-sm font-semibold text-term-ink">Clients</p>
+          <ul class="mt-2 flex flex-wrap gap-1.5">
+            {clients.map((c) => (
+              <li class="rounded-full border border-term-line px-2.5 py-0.5 font-mono text-xs text-term-muted">{c}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <ul class="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+      {ecosystem.map((p) => (
+        <li>
+          <p class="font-mono text-xs tracking-wide text-term-muted uppercase">{p.role}</p>
+          <h3 class="mt-1 text-base font-semibold text-white">
+            <a href={p.href} target="_blank" rel="noopener" class="text-white no-underline hover:underline">
+              {p.name} <span aria-hidden="true" class="text-term-muted">↗</span>
+            </a>
+          </h3>
+          <p class="mt-1.5 text-sm leading-relaxed text-term-muted">{p.desc}</p>
+        </li>
+      ))}
+    </ul>
+  </Section>
+
+  {/* ------------------------------------------------------ get involved --- */}
+  <Section
+    n={6}
+    id="community"
+    title="Get involved"
+    lede="IPython is maintained by a small team of volunteers and funded contributors. Questions, bug reports and documentation fixes all help."
+  >
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {community.map((c) => (
+        <Card title={c.title} href={c.href} external>{c.body}</Card>
+      ))}
+    </div>
+    <p class="mt-8 text-sm text-ink-muted">
+      Using IPython in a paper? <a href={baseUrl('community#cite')} class="font-medium">Cite IPython</a>.
+      Using it at work? <a href={baseUrl('community#sponsor')} class="font-medium">Sponsor</a> the
+      people who maintain it.
+    </p>
+  </Section>
 </PageLayout>
+
+<style>
+  /* Brand glow behind the hero terminal, derived from the theme variables. */
+  .hero-glow {
+    background:
+      radial-gradient(60rem 30rem at 78% 18%, color-mix(in oklab, var(--brand-2) 34%, transparent), transparent 70%),
+      radial-gradient(45rem 28rem at 8% 88%, color-mix(in oklab, var(--brand) 40%, transparent), transparent 70%);
+    pointer-events: none;
+  }
+
+  .diagram-node {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1 1 0;
+    border: 1px solid var(--term-line);
+    border-radius: 0.75rem;
+    background: color-mix(in oklab, var(--term) 65%, transparent);
+    padding: 0.95rem 1.1rem;
+  }
+
+  .diagram-clients {
+    flex-grow: 1.7;
+  }
+
+  .diagram-arrow {
+    display: block;
+    text-align: center;
+    color: color-mix(in oklab, var(--brand-2) 60%, var(--term-muted));
+    font-size: 1.35rem;
+    line-height: 1;
+    transform: rotate(90deg);
+  }
+
+  @media (min-width: 1024px) {
+    .diagram-arrow {
+      transform: none;
+      align-self: center;
+    }
+  }
+</style>

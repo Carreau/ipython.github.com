@@ -1,0 +1,72 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import Section from '../components/Section.astro';
+import { baseUrl } from '../lib/utils';
+
+const entries = [
+  {
+    title: 'Sloan Foundation Grant',
+    date: 'January 2013',
+    href: 'sloan-grant',
+    text: 'The $1.15M grant from the Alfred P. Sloan Foundation that funded two years of work on the IPython Notebook.',
+  },
+  {
+    title: 'Roadmap to 1.0 and Beyond',
+    date: 'April 2013',
+    meta: 'Paul Ivanov',
+    href: 'roadmap-announcement',
+    text: 'The plan for finally shipping 1.0 after twelve years of 0.x releases, and what came after it.',
+  },
+  {
+    title: 'Microsoft Corporation sponsors IPython',
+    date: 'August 2013',
+    href: 'microsoft-donation-2013',
+    text: 'A $100k donation to the project, announced alongside the 1.0 release.',
+  },
+  {
+    title: 'Presentations on IPython',
+    date: '2003 – 2014',
+    href: 'presentation',
+    text: 'Slides, videos and papers from a decade of talks about IPython, the Notebook and interactive computing.',
+  },
+  {
+    title: 'IPython User Survey 2011',
+    date: '2011',
+    href: 'usersurvey2011',
+    text: 'What users ran IPython on, which features they used, and what they wanted next.',
+  },
+  {
+    title: 'IPython User Survey 2013',
+    date: '2013',
+    href: 'usersurvey2013',
+    text: 'The second survey, taken as the Notebook was becoming the project’s centre of gravity.',
+  },
+];
+---
+
+<PageLayout
+  title="Archive"
+  eyebrow="In [1]:"
+  description="Announcements, user surveys and talks from IPython's history, kept at their original addresses."
+  lede="Announcements, surveys and talks from IPython's history, kept at their original addresses."
+>
+  <Section>
+    <ul class="grid gap-5 md:grid-cols-2">
+      {entries.map((e) => (
+        <li>
+          <a href={baseUrl(e.href)} class="card card-hover block h-full no-underline">
+            <p class="font-mono text-xs text-ink-faint">
+              {e.date}{e.meta && <span> · {e.meta}</span>}
+            </p>
+            <h2 class="mt-1.5 text-lg font-semibold text-ink">{e.title}</h2>
+            <p class="mt-2 text-sm text-ink-muted">{e.text}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+    <p class="mt-10 max-w-2xl text-sm text-ink-muted">
+      These pages are kept for the record and are no longer updated. For the project's history in one place, see
+      <a href={baseUrl('about')}> the timeline on the About page</a>.
+    </p>
+  </Section>
+</PageLayout>

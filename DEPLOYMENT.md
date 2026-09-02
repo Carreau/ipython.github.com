@@ -31,10 +31,31 @@ The deployment workflow:
 ## Configuration
 
 The build uses these environment variables:
-- `BASE_PATH`: Set to empty string for root domain deployment
-- `GITHUB_REPOSITORY_OWNER`: Set to `ipython` for correct asset paths
 
-These are set automatically in the workflow.
+- `BASE_PATH`: empty for the root domain, `/repo-name` for a project page.
+  Set automatically in the workflow.
+- `SITE_URL`: canonical site URL, defaults to `https://ipython.org`.
+- `GITHUB_TOKEN`: optional. Raises the GitHub API rate limit so the build can
+  fetch contributor names. If it is missing or invalid the build falls back
+  to anonymous requests and then to `src/data/fallback/build-data.json`; it
+  never fails because of the API.
+
+## Build-time data
+
+`src/lib/buildData.ts` fetches the latest release from PyPI and repository
+stats from GitHub once per build. To refresh the committed fallback after a
+successful build, copy the values printed in the build log into
+`src/data/fallback/build-data.json`.
+
+## Screenshots
+
+```
+pip install playwright && playwright install chromium
+npm run build
+python scripts/screenshot.py shots- "" install learn cheatsheet
+DARK=1 python scripts/screenshot.py shots-dark- ""
+MOBILE=1 python scripts/screenshot.py shots-mobile- ""
+```
 
 ## Troubleshooting
 

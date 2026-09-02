@@ -7,6 +7,7 @@ import CodeBlock from '../components/CodeBlock.astro';
 import Callout from '../components/Callout.astro';
 import Card from '../components/Card.astro';
 import Stat from '../components/Stat.astro';
+import Comparison from '../components/home/Comparison.astro';
 import { features } from '../data/features';
 import { buildData, formatDate, compact } from '../lib/buildData';
 const f = features.find((x) => x.id === 'tracebacks')!;
@@ -54,7 +55,8 @@ const g = features.find((x) => x.id === 'autosuggest')!;
       <ul><li>One</li><li>Two</li></ul>
     </div>
   </Section>
-  <Section n={4} title="Dark section" tone="dark" lede="Used for the ecosystem or a closing call to action.">
+  <Section n={4} title="Comparison table"><Comparison /></Section>
+  <Section n={5} title="Dark section" tone="dark" lede="Used for the ecosystem or a closing call to action.">
     <a href="#" class="btn btn-on-dark">On dark</a>
   </Section>
 </PageLayout>

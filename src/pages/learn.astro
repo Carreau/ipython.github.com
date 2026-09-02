@@ -1,0 +1,275 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import Section from '../components/Section.astro';
+import IPythonSession from '../components/IPythonSession.astro';
+import CommandBlock from '../components/CommandBlock.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import Callout from '../components/Callout.astro';
+import { features } from '../data/features';
+import { links } from '../data/site';
+import { buildData } from '../lib/buildData';
+import { baseUrl } from '../lib/utils';
+
+const order = ['autosuggest', 'completion', 'introspection', 'magics', 'shell', 'tracebacks', 'autoreload', 'await', 'history', 'display'];
+const tour = order.map((id) => features.find((f) => f.id === id)!).filter(Boolean);
+
+/** Table of contents: section id → short label, in page order. */
+const toc = [
+  { id: 'start', label: 'Start the shell' },
+  { id: 'prompts', label: 'Prompts & output' },
+  ...tour.map((f) => ({
+    id: f.id,
+    label: {
+      autosuggest: 'Autosuggestions',
+      completion: 'Completion',
+      introspection: 'Introspection',
+      magics: 'Magics',
+      shell: 'Shell access',
+      tracebacks: 'Tracebacks',
+      autoreload: 'Autoreload',
+      await: 'await',
+      history: 'History',
+      display: 'Rich output',
+    }[f.id] ?? f.id,
+  })),
+  { id: 'configure', label: 'Configure it' },
+  { id: 'jupyter', label: 'In Jupyter & VS Code' },
+  { id: 'embed', label: 'Embed & script' },
+];
+
+const startSession = `
+  $ ipython
+  Python 3.13.5 (main, Jun 12 2025, 09:41:22)
+  Type 'copyright', 'credits' or 'license' for more information
+  IPython ${buildData.version} -- An enhanced Interactive Python. Type '?' for help.
+
+  In [1]: 2 ** 10
+  Out[1]: 1024
+
+  In [2]: def area(r):
+     ...:     return 3.14159 * r ** 2
+     ...:
+
+  In [3]: area(2)
+  Out[3]: 12.56636
+
+  In [4]: exit
+  $
+`;
+
+const promptsSession = `
+  In [1]: 6 * 7
+  Out[1]: 42
+
+  In [2]: _ / 2
+  Out[2]: 21.0
+
+  In [3]: Out[1] + Out[2]
+  Out[3]: 63.0
+
+  In [4]: big = list(range(1_000_000));
+
+  In [5]: len(big)
+  Out[5]: 1000000
+`;
+
+const configFile = `c = get_config()  # noqa
+
+# Load autoreload on every start, and turn it on.
+c.InteractiveShellApp.extensions = ["autoreload"]
+c.InteractiveShellApp.exec_lines = ["%autoreload 2"]
+
+# A light-terminal colour theme and vi key bindings.
+c.InteractiveShell.colors = "lightbg"
+c.TerminalInteractiveShell.editing_mode = "vi"
+
+# Do not ask "Do you really want to exit?".
+c.TerminalInteractiveShell.confirm_exit = False`;
+
+const startupFile = `# ~/.ipython/profile_default/startup/00-imports.py
+# Every .py file in startup/ runs, in name order, before your first prompt.
+import numpy as np
+import pandas as pd
+from pathlib import Path`;
+
+const embedCode = `# analyse.py
+from IPython import embed
+
+df = load_everything()   # the slow part
+embed()                  # poke at df interactively
+print("carrying on")     # runs after you exit`;
+---
+
+<PageLayout
+  title="Learn IPython"
+  eyebrow="In [1]:"
+  description="A guided tour of the IPython shell: prompts and output caching, autosuggestions, completion, introspection, magics, shell access, tracebacks, autoreload, top-level await, history, rich output, configuration and embedding."
+  lede="A tour of the shell, from your first prompt to configuring it the way you like. Every transcript below is something IPython 9 actually prints."
+>
+  <nav id="toc" aria-label="On this page" class="sticky top-16 z-40 border-b border-line bg-surface/90 backdrop-blur supports-[backdrop-filter]:bg-surface/75">
+    <div class="container-x flex items-start gap-3 overflow-x-auto py-2.5 lg:overflow-visible">
+      <span class="hidden shrink-0 pt-1 font-mono text-xs tracking-wide text-ink-faint uppercase lg:inline">On this page</span>
+      <ul class="flex shrink-0 items-center gap-1 lg:min-w-0 lg:shrink lg:flex-wrap">
+        {toc.map((t) => (
+          <li>
+            <a href={`#${t.id}`} class="block rounded-md px-2.5 py-1 text-sm whitespace-nowrap text-ink-muted no-underline transition hover:bg-surface-2 hover:text-ink">{t.label}</a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </nav>
+
+  <Section n={2} id="start" class="scroll-mt-32" title="Start the shell" lede="Type ipython. Everything else in this tour happens at that prompt.">
+    <div class="grid gap-10 lg:grid-cols-2 lg:items-start">
+      <div class="min-w-0 text-ink-muted">
+        <p>
+          IPython replaces the plain <code>python</code> REPL. Inputs are numbered: <code>In [1]:</code> is the first thing
+          you typed, and if it produced a value, IPython echoes it as <code>Out[1]:</code>. Statements that return nothing
+          — an assignment, an import, a <code>def</code> — print no <code>Out</code> line.
+        </p>
+        <p class="mt-4">
+          A block that is not finished continues on <code>...:</code>. Finish it with an empty line. Leave the shell with
+          <code>exit</code>, <code>quit</code>, or <kbd>Ctrl</kbd>+<kbd>D</kbd> on an empty line.
+        </p>
+        <p class="mt-4">
+          Not installed yet? <a href={baseUrl('install')}>One command</a>. Once you are in, <code>?</code> prints the
+          built-in introduction and <code>%quickref</code> the quick reference card.
+        </p>
+      </div>
+      <IPythonSession class="min-w-0" session={startSession} title="ipython — first session" />
+    </div>
+  </Section>
+
+  <Section n={3} id="prompts" class="scroll-mt-32" tone="alt" title="Prompts and output caching" lede="Every result is kept, so you never lose a value by forgetting to assign it.">
+    <div class="grid gap-10 lg:grid-cols-2 lg:items-start">
+      <div class="min-w-0 text-ink-muted">
+        <p>
+          <code>_</code> is the last output, <code>__</code> the one before, <code>___</code> the one before that, and
+          <code>Out[n]</code> (or <code>_n</code>) is any earlier result by number. Inputs are kept too, in
+          <code>In[n]</code> and <code>_i</code>.
+        </p>
+        <p class="mt-4">
+          End a line with a semicolon to run it without printing or caching the result — useful when the value is huge, or
+          when a plotting call would otherwise echo an object at you.
+        </p>
+        <p class="mt-4">
+          Because outputs are cached, they stay alive in memory. <code>%reset out</code> clears the output cache,
+          <code>%xdel</code> drops a single variable and the references IPython kept to it.
+        </p>
+      </div>
+      <IPythonSession class="min-w-0" session={promptsSession} title="ipython — output caching" />
+    </div>
+  </Section>
+
+  {tour.map((f, i) => (
+    <Section
+      n={i + 4}
+      id={f.id}
+      class="scroll-mt-32"
+      tone={i % 2 === 0 ? 'default' : 'alt'}
+      title={f.title}
+    >
+      <div class="grid gap-10 lg:grid-cols-2 lg:items-start">
+        <div class="min-w-0">
+          <p class="text-ink-muted [&_code]:text-ink" set:html={f.detail} />
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            {f.since && <span class="chip">since {f.since}</span>}
+            {f.docs && (
+              <a href={f.docs} target="_blank" rel="noopener" class="text-sm font-medium">
+                Docs <span aria-hidden="true">→</span>
+              </a>
+            )}
+          </div>
+        </div>
+        <IPythonSession class="min-w-0" session={f.session} title={`ipython — ${f.id}`} />
+      </div>
+    </Section>
+  ))}
+
+  <Section n={14} id="configure" class="scroll-mt-32" title="Configure it" lede="A profile directory holds your configuration, your history database and any code you want run at startup.">
+    <div class="grid gap-10 lg:grid-cols-2 lg:items-start">
+      <div class="min-w-0">
+        <p class="text-ink-muted">Create the default profile (this only writes files, it changes nothing else):</p>
+        <CommandBlock class="mt-3" command="ipython profile create" />
+        <p class="mt-4 text-ink-muted">
+          That gives you <code>~/.ipython/profile_default/</code> containing a commented
+          <code>ipython_config.py</code>. Every option in it is also a command-line flag, and
+          <code>%config</code> changes most of them in a running session:
+        </p>
+        <CommandBlock class="mt-3" command='%config TerminalInteractiveShell.editing_mode="vi"' />
+        <p class="mt-4 text-ink-muted">
+          Separate profiles keep separate configs and histories: <code>ipython profile create teaching</code>, then
+          <code>ipython --profile=teaching</code>.
+        </p>
+        <p class="mt-4 text-ink-muted">
+          Anything you drop in <code>~/.ipython/profile_default/startup/</code> runs before your first prompt, in
+          filename order — a good home for the imports you always type.
+        </p>
+        <a class="mt-5 inline-block text-sm font-medium" href={links.docsConfig} target="_blank" rel="noopener">Configuration docs <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="min-w-0">
+        <CodeBlock lang="python" title="~/.ipython/profile_default/ipython_config.py" code={configFile} />
+        <CodeBlock class="mt-6" lang="python" title="startup/00-imports.py" code={startupFile} />
+      </div>
+    </div>
+  </Section>
+
+  <Section n={15} id="jupyter" class="scroll-mt-32" tone="alt" title="IPython in Jupyter, VS Code and friends" lede="The shell you just learned is also the engine inside every Python notebook.">
+    <div class="grid gap-10 lg:grid-cols-2 lg:items-start">
+      <div class="min-w-0 text-ink-muted">
+        <p>
+          A Jupyter kernel for Python is <code>ipykernel</code>, and <code>ipykernel</code> runs your code through
+          IPython. So JupyterLab, Notebook, VS Code, Colab and every other client inherit the same magics, the same
+          <code>?</code> introspection, the same completion and the same tracebacks.
+        </p>
+        <p class="mt-4">
+          What differs is the front end, not the language: a notebook cell is the same thing as a
+          <code>%%cell</code> magic block, and <code>%matplotlib inline</code> puts figures in the output area instead of
+          a window. <code>%autoreload 2</code> is just as useful there.
+        </p>
+        <p class="mt-4">
+          To make one environment available as a kernel, install <code>ipykernel</code> in it and register it:
+        </p>
+        <CommandBlock class="mt-3" command="python -m ipykernel install --user --name myproject" />
+        <a class="mt-5 inline-block text-sm font-medium" href={links.docsKernel} target="_blank" rel="noopener">Kernel installation docs <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="min-w-0">
+        <CommandBlock command='pip install "ipython[kernel]"' label="Everything you need for a notebook kernel" />
+        <Callout class="mt-6" title="IPython or Jupyter?" tone="info">
+          IPython is the shell and the Python execution engine. Jupyter is the protocol, the notebook format and the
+          applications around it. Installing Jupyter installs IPython; installing IPython does not install Jupyter.
+        </Callout>
+      </div>
+    </div>
+  </Section>
+
+  <Section n={16} id="embed" class="scroll-mt-32" title="Embed and script" lede="You can also call IPython from a program, or use it as a one-shot command.">
+    <div class="grid gap-10 lg:grid-cols-2 lg:items-start">
+      <div class="min-w-0">
+        <CodeBlock lang="python" title="analyse.py" code={embedCode} />
+        <p class="mt-4 text-ink-muted">
+          <code>embed()</code> opens a full IPython shell wherever you put it, with the local and global names of that
+          frame. Exit it and the program continues — a debugger you place yourself.
+        </p>
+        <a class="mt-4 inline-block text-sm font-medium" href={links.docsEmbedding} target="_blank" rel="noopener">Embedding docs <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="min-w-0">
+        <CommandBlock command='ipython -c "import sys; print(sys.version)"' label="Run one command and exit" />
+        <CommandBlock class="mt-5" command="ipython -i script.py" label="Run a script, then stay at the prompt with its variables" />
+        <CommandBlock class="mt-5" command="python -m IPython" label="Start the shell for a specific interpreter" />
+        <p class="mt-5 text-sm text-ink-muted">
+          <code>python -m IPython</code> is the reliable form inside a virtual environment: it uses the interpreter you
+          named, whatever <code>ipython</code> happens to be first on your <code>PATH</code>.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  <Section tone="alt" narrow>
+    <Callout title="Where to go next" tone="tip">
+      Keep the <a href={baseUrl('cheatsheet')}>cheat sheet</a> open for magics, keyboard shortcuts and prompt syntax, and
+      read the <a href={links.docsTutorial} target="_blank" rel="noopener">official tutorial ↗</a> for the parts this tour
+      skipped.
+    </Callout>
+  </Section>
+</PageLayout>

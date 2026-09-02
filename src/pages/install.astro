@@ -1,7 +1,203 @@
 ---
 import PageLayout from '../layouts/PageLayout.astro';
+import Section from '../components/Section.astro';
+import CommandBlock from '../components/CommandBlock.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import Callout from '../components/Callout.astro';
+import IPythonSession from '../components/IPythonSession.astro';
+import { links } from '../data/site';
+import { buildData } from '../lib/buildData';
+import { baseUrl } from '../lib/utils';
+
+const requires = (buildData.requiresPython || '>=3.11').replace(/^>=\s*/, '≥ ');
+
+const managers = [
+  { command: 'uv tool install ipython', label: 'uv — isolated, recommended for a global command' },
+  { command: 'uvx ipython', label: 'uv — run it once without installing' },
+  { command: 'pipx install ipython', label: 'pipx — isolated global command' },
+  { command: 'conda install -c conda-forge ipython', label: 'conda' },
+  { command: 'pixi add ipython', label: 'pixi' },
+  { command: 'brew install ipython', label: 'Homebrew (macOS, Linux)' },
+  { command: 'sudo apt install ipython3', label: 'Debian, Ubuntu' },
+  { command: 'sudo dnf install ipython', label: 'Fedora' },
+];
+
+const extras = [
+  { name: 'ipython[kernel]', desc: 'Adds ipykernel, so this interpreter can back a Jupyter kernel.' },
+  { name: 'ipython[matplotlib]', desc: 'Adds matplotlib for %matplotlib and inline plotting.' },
+  { name: 'ipython[test]', desc: 'The test dependencies, for running IPython’s own test suite.' },
+  { name: 'ipython[all]', desc: 'Every optional dependency at once.' },
+];
+
+const venv = `python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\\Scripts\\activate
+pip install ipython`;
+
+const verify = `
+  $ ipython
+  Python 3.13.5 (main, Jun 12 2025, 09:41:22)
+  Type 'copyright', 'credits' or 'license' for more information
+  IPython ${buildData.version} -- An enhanced Interactive Python. Type '?' for help.
+  Tip: Use \`%autoreload 2\` to reload modules automatically when they change.
+
+  In [1]: import sys; sys.version
+  Out[1]: '3.13.5 (main, Jun 12 2025, 09:41:22) [GCC 14.2.0]'
+`;
 ---
 
-<PageLayout title="Install" description="Placeholder while the redesign is in progress.">
-  <div class="container-x py-16"><p class="text-ink-muted">This page is being rebuilt.</p></div>
+<PageLayout
+  title="Install IPython"
+  eyebrow="In [1]:"
+  description={`Install IPython ${buildData.version} with pip, uv, conda, pipx, Homebrew or your distribution's package manager. Requirements, extras, upgrading and troubleshooting.`}
+  lede="IPython is a pure-Python package on PyPI and conda-forge: one command, no build step, no configuration required."
+>
+  <Section n={2} title="The short version" lede="Install it, then run it.">
+    <div class="grid gap-5 lg:grid-cols-2">
+      <CommandBlock class="min-w-0" command="pip install ipython" label="Install" />
+      <CommandBlock class="min-w-0" command="ipython" label="Start the shell" />
+    </div>
+    <p class="mt-5 max-w-2xl text-ink-muted">
+      That is the whole setup. Press <kbd>Ctrl</kbd>+<kbd>D</kbd> or type <code>exit</code> to leave again.
+      Next: <a href={baseUrl('learn')}>the guided tour</a>.
+    </p>
+  </Section>
+
+  <Section n={3} title="Requirements" tone="alt">
+    <div class="grid gap-5 md:grid-cols-3">
+      <div class="card">
+        <p class="font-mono text-sm text-brand-text">Python {requires}</p>
+        <p class="mt-2 text-sm text-ink-muted">
+          IPython {buildData.version} requires Python <code>{buildData.requiresPython}</code>. Older Pythons can install an
+          older IPython; pip picks a compatible version automatically.
+        </p>
+      </div>
+      <div class="card">
+        <p class="font-mono text-sm text-brand-text">Linux · macOS · Windows</p>
+        <p class="mt-2 text-sm text-ink-muted">
+          The same package everywhere. On Windows the shell works in <code>cmd.exe</code> and PowerShell, but colours,
+          Unicode and key bindings are best in <a href="https://aka.ms/terminal" target="_blank" rel="noopener">Windows Terminal</a>.
+        </p>
+      </div>
+      <div class="card">
+        <p class="font-mono text-sm text-brand-text">No compiler</p>
+        <p class="mt-2 text-sm text-ink-muted">
+          Pure Python, with a handful of pure-Python dependencies (prompt_toolkit, Pygments, traitlets…). Nothing is built
+          from source.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  <Section n={4} title="Other package managers" lede="Pick the one that already manages your environments.">
+    <div class="grid gap-5 md:grid-cols-2">
+      {managers.map((m) => <CommandBlock class="min-w-0" command={m.command} label={m.label} />)}
+    </div>
+    <Callout class="mt-8" tone="tip">
+      Distribution packages (<code>apt</code>, <code>dnf</code>, and friends) often lag several releases behind. For the
+      current version, install with pip, uv or conda instead.
+    </Callout>
+  </Section>
+
+  <Section n={5} title="Inside a project environment" tone="alt" lede="The usual case: IPython as a development dependency of one project, not a global tool.">
+    <div class="grid gap-8 lg:grid-cols-2">
+      <div class="min-w-0"><CodeBlock lang="bash" title="venv + pip" code={venv} /></div>
+      <div class="min-w-0">
+        <p class="text-ink-muted">
+          Installing IPython <em>into</em> the environment matters: the shell then sees exactly the packages that project
+          has. A global IPython started inside an activated venv will not import that venv’s packages.
+        </p>
+        <p class="mt-4 text-ink-muted">With uv, add it to the dev group instead:</p>
+        <CommandBlock class="mt-3 min-w-0" command="uv add --dev ipython" />
+        <p class="mt-4 text-ink-muted">
+          Then run it as <code>uv run ipython</code>. If the command is missing but the package is installed,
+          <code>python -m IPython</code> always works.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  <Section n={6} title="Optional extras">
+    <div class="max-w-3xl">
+      <div class="overflow-x-auto">
+      <table class="table-plain">
+        <thead><tr><th>Extra</th><th>What it adds</th></tr></thead>
+        <tbody>
+          {extras.map((e) => (
+            <tr>
+              <td>pip install "{e.name}"</td>
+              <td>{e.desc}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      </div>
+      <Callout class="mt-8" title="Already using Jupyter?" tone="info">
+        You already have IPython. Jupyter runs Python code through <code>ipykernel</code>, which depends on IPython — so
+        notebooks in JupyterLab, Notebook and VS Code get the same magics, completions and tracebacks as the terminal shell.
+      </Callout>
+    </div>
+  </Section>
+
+  <Section n={7} title="Upgrade and verify" tone="alt">
+    <div class="grid gap-8 lg:grid-cols-2">
+      <div class="min-w-0">
+        <CommandBlock command="pip install -U ipython" label="Upgrade" />
+        <CommandBlock class="mt-5" command="ipython --version" label="Check the version" />
+        <p class="mt-5 text-sm text-ink-muted">
+          IPython {buildData.version} is the current release. Minor releases land roughly monthly; see
+          <a href={baseUrl('releases')}>releases</a> for the support window.
+        </p>
+      </div>
+      <IPythonSession class="min-w-0" session={verify} title="ipython — first run" />
+    </div>
+  </Section>
+
+  <Section n={8} title="Troubleshooting">
+    <div class="max-w-3xl divide-y divide-line rounded-(--radius-card) border border-line">
+      <details class="group px-5 py-4">
+        <summary class="font-medium text-ink">“ipython: command not found”</summary>
+        <div class="mt-3 text-sm text-ink-muted">
+          <p>The package installed, but its script directory is not on your <code>PATH</code> — common with
+          <code>pip install --user</code>. Run it through the interpreter you installed it into:</p>
+          <CommandBlock class="mt-3 min-w-0" command="python -m IPython" />
+          <p class="mt-3">Or install it as an isolated tool with <code>uv tool install ipython</code> or
+          <code>pipx install ipython</code>, which both put the command on your <code>PATH</code>.</p>
+        </div>
+      </details>
+      <details class="group px-5 py-4">
+        <summary class="font-medium text-ink">It starts, but my packages are missing</summary>
+        <div class="mt-3 text-sm text-ink-muted">
+          <p>You are running an IPython from a different environment. <code>python -m IPython</code> always uses the
+          interpreter you invoke it with, so the shell and your packages match. To confirm which one you are in, run
+          <code>import sys; sys.executable</code> at the prompt.</p>
+        </div>
+      </details>
+      <details class="group px-5 py-4">
+        <summary class="font-medium text-ink">The colours are unreadable</summary>
+        <div class="mt-3 text-sm text-ink-muted">
+          <p>The default theme assumes a dark terminal. On a light background, start with
+          <code>ipython --colors=lightbg</code>, or switch inside a running session with <code>%colors lightbg</code>.
+          <code>nocolor</code> turns colouring off entirely.</p>
+        </div>
+      </details>
+      <details class="group px-5 py-4">
+        <summary class="font-medium text-ink">I do not want the startup tip</summary>
+        <div class="mt-3 text-sm text-ink-muted">
+          <p>Start with <code>ipython --no-tip</code>, or set it permanently in your profile:</p>
+          <CodeBlock class="mt-3" lang="python" title="~/.ipython/profile_default/ipython_config.py" code={'c.TerminalInteractiveShell.enable_tip = False'} />
+        </div>
+      </details>
+      <details class="group px-5 py-4">
+        <summary class="font-medium text-ink">I want vi key bindings</summary>
+        <div class="mt-3 text-sm text-ink-muted">
+          <p>Start with <code>ipython --TerminalInteractiveShell.editing_mode=vi</code>, or set
+          <code>c.TerminalInteractiveShell.editing_mode = "vi"</code> in your config file to make it the default.</p>
+        </div>
+      </details>
+    </div>
+    <p class="mt-6 max-w-3xl text-sm text-ink-muted">
+      Anything else: the <a href={links.docsInstall} target="_blank" rel="noopener">installation chapter of the documentation ↗</a>
+      covers kernels, development installs and platform specifics.
+    </p>
+  </Section>
 </PageLayout>

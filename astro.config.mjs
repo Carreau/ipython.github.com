@@ -16,7 +16,7 @@ export default defineConfig({
   base,
   output: "static",
   trailingSlash: "ignore",
-  integrations: [react(), sitemap()],
+  integrations: [react(), sitemap({ filter: (page) => !page.includes('/styleguide') })],
   vite: {
     plugins: [tailwindcss()],
   },

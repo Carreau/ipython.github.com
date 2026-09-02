@@ -1,7 +1,170 @@
 ---
 import PageLayout from '../layouts/PageLayout.astro';
+import Section from '../components/Section.astro';
+import Card from '../components/Card.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import Callout from '../components/Callout.astro';
+import { links, citation } from '../data/site';
+import { baseUrl } from '../lib/utils';
+
+const helpChannels = [
+  { title: 'Documentation', href: links.docs, text: 'The tutorial, the magics reference, configuration and the full API. Start here — most questions are answered in it.' },
+  { title: 'Jupyter Discourse', href: links.discourse, text: 'The best place for questions. A forum shared with the wider Jupyter community; answers stay searchable.' },
+  { title: 'Jupyter Zulip', href: links.zulip, text: 'Chat with the developers. Good for quick back-and-forth and for finding out whether something is a known problem.' },
+  { title: 'Stack Overflow', href: links.stackoverflow, text: 'The ipython tag. Thousands of answered questions, and a good place to search before asking anywhere else.' },
+  { title: 'GitHub issues', href: links.issues, text: 'Bug reports and feature requests only. Please use Discourse or Zulip for usage questions.' },
+];
+
+const contributeWays = [
+  { title: 'Triage', text: 'Reproduce new issues, add the missing version numbers, close what is already fixed.' },
+  { title: 'Review', text: 'Read open pull requests and say whether the change works for you. Reviews are the scarcest resource in the project.' },
+  { title: 'Documentation', text: 'Fix an unclear paragraph, document a magic, add an example. Docs changes are as welcome as code.' },
+  { title: 'Answering questions', text: 'Help someone on Discourse, Zulip or Stack Overflow. It is the fastest way to learn the codebase.' },
+  { title: 'Packaging', text: 'Keep IPython current in conda-forge, Debian, Fedora, Homebrew and the other distributions people install it from.' },
+];
+
+const devSetup = `git clone https://github.com/ipython/ipython.git
+cd ipython
+pip install -e ".[test]"
+pytest`;
 ---
 
-<PageLayout title="Community" description="Placeholder while the redesign is in progress.">
-  <div class="container-x py-16"><p class="text-ink-muted">This page is being rebuilt.</p></div>
+<PageLayout
+  title="Community"
+  eyebrow="In [1]:"
+  description="Get help with IPython, contribute, read the code of conduct, report a security issue, understand the governance, sponsor the project and cite it in your work."
+  lede="IPython is built by volunteers, with occasional funded work. Here is where to ask, how to help, and how to support the project."
+>
+  <Section n={2} id="help" title="Get help" lede="Pick the channel that matches your question. All of them are read by people who use IPython every day.">
+    <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {helpChannels.map((c) => (
+        <Card title={c.title} href={c.href} external>{c.text}</Card>
+      ))}
+    </div>
+    <Callout class="mt-8" title="Writing a report people can act on" tone="tip">
+      Include the output of <code>ipython --version</code> and <code>python --version</code>, your operating system, a
+      minimal example that reproduces the problem, and the full traceback captured after <code>%xmode Verbose</code>.
+      A report with those four things is usually fixed in one round.
+    </Callout>
+  </Section>
+
+  <Section n={3} id="contribute" title="Contribute" lede="Code is one way in, and not the most needed one." tone="alt">
+    <div class="grid gap-10 lg:grid-cols-2 [&>*]:min-w-0">
+      <div>
+        <h3 class="text-base font-semibold text-ink">Ways to help</h3>
+        <ul class="mt-4 space-y-3">
+          {contributeWays.map((w) => (
+            <li class="text-sm text-ink-muted">
+              <span class="font-medium text-ink">{w.title}.</span> {w.text}
+            </li>
+          ))}
+        </ul>
+        <p class="mt-6 text-sm text-ink-muted">
+          Looking for a first patch? The maintainers label approachable issues as
+          <a href={links.goodFirstIssues} target="_blank" rel="noopener"> good first issues <span aria-hidden="true">↗</span></a>.
+          Read <a href={links.contributing} target="_blank" rel="noopener">CONTRIBUTING.md <span aria-hidden="true">↗</span></a> before you open a pull request.
+        </p>
+      </div>
+      <div>
+        <h3 class="mb-4 text-base font-semibold text-ink">A development install</h3>
+        <CodeBlock code={devSetup} lang="bash" title="clone, install, test" />
+        <p class="mt-4 text-sm text-ink-muted">
+          An editable install means your checkout is the IPython you run. The test suite should pass before you start,
+          so you know that any failure afterwards is yours.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  <Section n={4} id="conduct" title="Code of conduct">
+    <div class="max-w-2xl">
+    <p class="text-ink-muted">
+      IPython follows the
+      <a href={links.codeOfConduct} target="_blank" rel="noopener"> Jupyter code of conduct <span aria-hidden="true">↗</span></a>,
+      which applies to the issue tracker, Discourse, Zulip, and events where the project is represented.
+    </p>
+    <p class="mt-4 text-ink-muted">
+      Everyone is welcome here, whatever their background, experience or identity — LGBTQ+ people included and
+      explicitly so. That is why the site ships pride colour themes and flies a banner during Pride month: visibility
+      costs nothing and tells people they are in the right place.
+    </p>
+    </div>
+  </Section>
+
+  <Section n={5} id="security" title="Security" tone="alt">
+    <div class="max-w-2xl">
+    <p class="text-ink-muted">
+      Please report suspected vulnerabilities privately through
+      <a href={links.security} target="_blank" rel="noopener"> GitHub's security advisory form <span aria-hidden="true">↗</span></a>,
+      which reaches the maintainers without disclosing the problem publicly. Do not open a public issue or pull request
+      for a security bug.
+    </p>
+    <p class="mt-4 text-ink-muted">
+      Reports are acted on: IPython 9.12 and 9.16 both shipped security hardening, including closing an
+      arbitrary-code-execution path in annotation evaluation during completion and escaping HTML attributes in display
+      objects. If you are unsure whether what you found counts, report it anyway.
+    </p>
+    </div>
+  </Section>
+
+  <Section n={6} id="governance" title="Governance">
+    <div class="max-w-2xl">
+    <p class="text-ink-muted">
+      IPython is a subproject of
+      <a href={links.jupyterGovernance} target="_blank" rel="noopener"> Project Jupyter <span aria-hidden="true">↗</span></a>
+      and follows its governance documents. Day-to-day decisions — what gets merged, what ships in the next release —
+      are made in the open by the maintainers on GitHub, in the issues and pull requests of the repository.
+    </p>
+    <p class="mt-4 text-ink-muted">
+      The wider Jupyter project is hosted by the
+      <a href={links.jupyterFoundation} target="_blank" rel="noopener"> Jupyter Foundation <span aria-hidden="true">↗</span></a>,
+      part of the Linux Foundation, which provides the legal and organisational home for the community.
+    </p>
+    </div>
+  </Section>
+
+  <Section n={7} id="sponsor" title="Sponsor" lede="IPython is free software with no purchase price, but it is not free to maintain." tone="alt">
+    <div class="grid gap-5 md:grid-cols-2">
+      <div class="card">
+        <h3 class="text-base font-semibold text-ink">Organisations</h3>
+        <p class="mt-2 text-sm text-ink-muted">
+          Companies that depend on IPython and Jupyter can support the whole stack by joining the
+          <a href={links.jupyterFoundation} target="_blank" rel="noopener"> Jupyter Foundation <span aria-hidden="true">↗</span></a>
+          at the Linux Foundation. If you want to fund a specific piece of IPython work, open an issue or say hello on
+          Zulip and we will talk about scope.
+        </p>
+      </div>
+      <div class="card">
+        <h3 class="text-base font-semibold text-ink">Individuals</h3>
+        <p class="mt-2 text-sm text-ink-muted">
+          Donations to the Jupyter community can be made
+          <a href={links.donate} target="_blank" rel="noopener"> through Jupyter <span aria-hidden="true">↗</span></a>
+          or <a href={links.numfocusDonate} target="_blank" rel="noopener">via NumFOCUS <span aria-hidden="true">↗</span></a>,
+          which handles tax-deductible giving in the United States.
+        </p>
+      </div>
+    </div>
+    <p class="mt-6 max-w-2xl text-sm text-ink-muted">
+      Funded work is credited in the release notes: continued Python 3.11 support in the 9.x series, for instance, was
+      paid for by the D. E. Shaw group in 2026. Earlier support is listed in the
+      <a href={baseUrl('about')}>funding history</a>.
+    </p>
+  </Section>
+
+  <Section n={8} id="cite" title="Cite IPython" lede="If IPython helped with published work, the 2007 paper is the canonical citation.">
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] [&>*]:min-w-0">
+      <div>
+        <p class="text-ink-muted">{citation.text}</p>
+        <p class="mt-4 text-sm text-ink-muted">
+          DOI: <a href={links.paperDoi} target="_blank" rel="noopener">{citation.doi} <span aria-hidden="true">↗</span></a>
+        </p>
+        <p class="mt-4 text-sm text-ink-muted">
+          The docs also explain
+          <a href={links.docsCiting} target="_blank" rel="noopener"> how to cite IPython <span aria-hidden="true">↗</span></a>,
+          including which version to record for reproducibility.
+        </p>
+      </div>
+      <CodeBlock code={citation.bibtex} lang="latex" title="BibTeX" class="min-w-0" />
+    </div>
+  </Section>
 </PageLayout>

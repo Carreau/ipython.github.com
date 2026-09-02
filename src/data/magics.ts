@@ -57,6 +57,7 @@ export const magicGroups: MagicGroup[] = [
       { name: '%whos', desc: 'Like %who, as a table with types and values.' },
       { name: '%who_ls', desc: 'The same, returned as a Python list.' },
       { name: '%reset', desc: 'Delete all names you defined (-f skips the prompt, -s keeps history).' },
+      { name: '%clear', desc: 'Clear the terminal screen (Ctrl+L does the same; %cls on Windows).' },
       { name: '%xdel', desc: 'Delete a variable and try to clear references IPython kept to it.' },
       { name: '%pdef / %pdoc / %psource / %pfile', desc: 'Print only the signature, docstring, source or file of an object.' },
       { name: '%pinfo / %pinfo2', desc: 'What obj? and obj?? call under the hood.' },

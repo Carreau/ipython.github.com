@@ -1,7 +1,222 @@
 ---
 import PageLayout from '../layouts/PageLayout.astro';
+import Section from '../components/Section.astro';
+import Card from '../components/Card.astro';
+import { maintainers, alumni, otherContributions, funders } from '../data/team';
+import { timeline } from '../data/timeline';
+import { links } from '../data/site';
+import { buildData } from '../lib/buildData';
+import { baseUrl } from '../lib/utils';
+
+const avatar = (login: string) => `https://github.com/${login}.png?size=96`;
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => Array.from(w)[0])
+    .join('');
+
+const contributors = [...buildData.contributors].sort((a, b) =>
+  a.login.toLowerCase().localeCompare(b.login.toLowerCase()),
+);
+
+const teamFile = 'https://github.com/ipython/ipython.github.com/blob/main/src/data/team.ts';
+const isExternal = (href: string) => /^https?:/.test(href);
 ---
 
-<PageLayout title="About" description="Placeholder while the redesign is in progress.">
-  <div class="container-x py-16"><p class="text-ink-muted">This page is being rebuilt.</p></div>
+<PageLayout
+  title="About IPython"
+  eyebrow="In [1]:"
+  description="What IPython is, how it grew from a 2001 afternoon hack into the shell and kernel behind every Python notebook, the people who build it, who funded it, and how to use the name and logo."
+  lede="Twenty-five years of interactive Python."
+>
+  <Section n={2} title="What IPython is">
+    <div class="prose max-w-2xl">
+      <p>
+        IPython began in 2001, when Fernando Pérez — then a physics graduate student — merged two small projects of his
+        own into an enhanced interactive shell for Python. It was written to make a scientist's day at the prompt less
+        tedious: better completion, better history, a way to call the shell without leaving Python.
+      </p>
+      <p>
+        That prompt grew a client–server architecture, then a browser interface. The IPython Notebook shipped in 2011,
+        and by 2015 its language-agnostic parts had been split out into Project Jupyter, leaving IPython to be what it
+        had started as, only much better at it.
+      </p>
+      <p>
+        Today IPython is two things: the interactive Python shell you get by typing <code>ipython</code>, and — through
+        <a href={links.ipykernel} target="_blank" rel="noopener">ipykernel</a> — the engine executing the code in every
+        Python notebook, in Jupyter, VS Code, Colab and the rest. It is maintained by volunteers, with occasional
+        stretches of funded work, and it releases roughly every month.
+      </p>
+    </div>
+  </Section>
+
+  <Section n={3} title="Timeline" lede="Dates verified against PyPI and the release notes." tone="alt">
+    <ol class="relative border-l border-line pl-6 sm:pl-8">
+      {timeline.map((m) => (
+        <li class="relative pb-9 last:pb-0">
+          <span
+            aria-hidden="true"
+            class="absolute top-2 -left-[1.65rem] h-2.5 w-2.5 rounded-full border-2 border-surface-2 bg-brand sm:-left-[2.15rem]"
+          ></span>
+          <div class="sm:flex sm:gap-8">
+            <p class="font-mono text-sm font-semibold text-brand-text sm:w-24 sm:shrink-0">{m.year}</p>
+            <div class="mt-1 sm:mt-0">
+              <h3 class="text-base font-semibold text-ink">{m.title}</h3>
+              <p class="mt-1.5 text-sm text-ink-muted">{m.text}</p>
+            </div>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </Section>
+
+  <Section n={4} title="People" lede="IPython has had hundreds of contributors. These lists are kept by hand, because a commit graph cannot see reviewing, triage, teaching or design.">
+    <h3 class="text-lg font-semibold text-ink">Maintainers</h3>
+    <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {maintainers.map((p) => (
+        <div class="card flex items-center gap-4">
+          {p.login ? (
+            <img
+              src={avatar(p.login)}
+              alt={p.name}
+              width="56"
+              height="56"
+              loading="lazy"
+              class="h-14 w-14 shrink-0 rounded-full border border-line bg-surface-3"
+            />
+          ) : (
+            <span
+              aria-hidden="true"
+              class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-line bg-surface-3 font-mono text-sm text-ink-muted"
+            >{initials(p.name)}</span>
+          )}
+          <div class="min-w-0">
+            <p class="font-semibold text-ink">{p.name}</p>
+            <p class="mt-0.5 text-sm text-ink-muted">{p.role}</p>
+            {p.login && (
+              <a href={`https://github.com/${p.login}`} target="_blank" rel="noopener" class="mt-1 inline-block font-mono text-xs">@{p.login}</a>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <h3 class="mt-14 text-lg font-semibold text-ink">Founders and past core developers</h3>
+    <p class="mt-2 max-w-2xl text-sm text-ink-muted">
+      Roughly in order of joining. Many are still active elsewhere in the Jupyter ecosystem.
+    </p>
+    <ul class="mt-6 grid gap-x-6 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
+      {alumni.map((p) => (
+        <li class="flex items-start gap-3">
+          {p.login ? (
+            <img
+              src={avatar(p.login)}
+              alt={p.name}
+              width="40"
+              height="40"
+              loading="lazy"
+              class="h-10 w-10 shrink-0 rounded-full border border-line bg-surface-3"
+            />
+          ) : (
+            <span
+              aria-hidden="true"
+              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line bg-surface-3 font-mono text-xs text-ink-muted"
+            >{initials(p.name)}</span>
+          )}
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-ink">{p.name}</p>
+            <p class="mt-0.5 text-sm text-ink-muted">{p.role}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+
+    <h3 class="mt-14 text-lg font-semibold text-ink">Contributors</h3>
+    <p class="mt-2 max-w-2xl text-sm text-ink-muted">
+      A sample of the people whose commits are in the repository, in alphabetical order. Nobody here is ranked: a
+      one-line fix to a traceback can matter more than a thousand lines elsewhere.
+    </p>
+    <ul class="mt-6 flex flex-wrap gap-2">
+      {contributors.map((c) => (
+        <li>
+          <a href={c.html_url} target="_blank" rel="noopener" title={c.name || c.login} class="block">
+            <img
+              src={c.avatar_url}
+              alt={c.name || c.login}
+              width="44"
+              height="44"
+              loading="lazy"
+              class="h-11 w-11 rounded-full border border-line bg-surface-3 transition hover:border-line-strong"
+            />
+          </a>
+        </li>
+      ))}
+    </ul>
+    <p class="mt-4 text-sm">
+      <a href="https://github.com/ipython/ipython/graphs/contributors" target="_blank" rel="noopener">
+        and hundreds more on GitHub <span aria-hidden="true">↗</span>
+      </a>
+    </p>
+
+    <h3 class="mt-14 text-lg font-semibold text-ink">Contributions that don't show in a commit graph</h3>
+    <ul class="mt-4 grid list-disc gap-2 pl-5 sm:grid-cols-2">
+      {otherContributions.map((c) => <li class="text-sm text-ink-muted">{c}</li>)}
+    </ul>
+
+    <p class="mt-10 rounded-lg border border-line bg-surface-2 px-5 py-4 text-sm text-ink-muted">
+      The maintainer and alumni lists above are curated by hand and will be incomplete. If you belong on one, or a role
+      is wrong, <a href={teamFile} target="_blank" rel="noopener">edit this list <span aria-hidden="true">↗</span></a>.
+    </p>
+  </Section>
+
+  <Section n={5} title="Funding" lede="Most of IPython has been written by volunteers. These organisations paid for some of it." tone="alt">
+    <div class="grid gap-5 md:grid-cols-3">
+      {funders.map((f) => (
+        <Card title={f.name} href={isExternal(f.href) ? f.href : baseUrl(f.href)} external={isExternal(f.href)}>
+          <span class="font-mono text-xs text-ink-faint">{f.year}</span>
+          <span class="mt-1 block">{f.note}</span>
+        </Card>
+      ))}
+    </div>
+    <p class="mt-6 max-w-2xl text-sm text-ink-muted">
+      Funding development is still the most direct way to help — see
+      <a href={baseUrl('community#sponsor')}> how to sponsor IPython</a>.
+    </p>
+  </Section>
+
+  <Section n={6} title="Licence and brand">
+    <div class="grid gap-8 lg:grid-cols-2">
+      <div>
+        <h3 class="text-base font-semibold text-ink">Licence</h3>
+        <p class="mt-2 text-ink-muted">
+          IPython is released under the modified BSD (3-Clause) licence: use it, ship it, sell what you build with it,
+          keep the copyright notice.
+          <a href={links.license} target="_blank" rel="noopener"> Read the licence <span aria-hidden="true">↗</span></a>.
+        </p>
+        <h3 class="mt-8 text-base font-semibold text-ink">The name</h3>
+        <p class="mt-2 text-ink-muted">
+          "IPython" is written with a capital I and P, and a lowercase "ython".
+        </p>
+      </div>
+      <div>
+        <h3 class="text-base font-semibold text-ink">Logo</h3>
+        <div class="mt-4 flex items-center gap-6 rounded-(--radius-card) border border-line bg-surface-2 p-6">
+          <img src={baseUrl('ipython-logo.png')} alt="The IPython logo" width="120" height="120" class="h-24 w-auto" />
+          <p class="text-sm text-ink-muted">
+            <a href={baseUrl('ipython-logo.png')} download>Download the logo (PNG)</a><br />
+            Please keep the proportions and don't recolour it.
+          </p>
+        </div>
+      </div>
+    </div>
+  </Section>
+
+  <Section n={7} title="Archive" tone="alt">
+    <p class="max-w-2xl text-ink-muted">
+      Announcements, user surveys and conference talks from earlier years are kept at their original addresses.
+      <a href={baseUrl('archive')}> Browse the archive</a>.
+    </p>
+  </Section>
 </PageLayout>

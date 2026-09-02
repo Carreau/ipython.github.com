@@ -1,0 +1,147 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import Section from '../components/Section.astro';
+import { magicGroups, promptSyntax } from '../data/magics';
+import { shortcutGroups } from '../data/shortcuts';
+import { links } from '../data/site';
+import { baseUrl } from '../lib/utils';
+
+/** "Ctrl+X Ctrl+E" -> [["Ctrl","X"],["Ctrl","E"]] so each cap gets its own <kbd>. */
+function caps(key: string): string[][] {
+  return key.split(' ').map((chunk) => chunk.split('+'));
+}
+---
+
+<PageLayout
+  title="Cheat sheet"
+  eyebrow="In [1]:"
+  description="One-page reference for IPython 9: prompt syntax, every magic command grouped by task, and the default keyboard shortcuts."
+  lede="Magics, shortcuts and prompt syntax for IPython 9. Press Ctrl+P to print."
+>
+  <div slot="header-extra" class="mt-6 flex flex-wrap gap-3">
+    <button type="button" class="btn btn-secondary no-print" onclick="window.print()">Print this page</button>
+    <a class="btn btn-ghost no-print" href={links.docsMagics} target="_blank" rel="noopener">Full magics reference ↗</a>
+  </div>
+
+  <Section class="print:px-6 print:py-6" n={2} id="prompt" title="Prompt syntax" lede="The characters that make the IPython prompt different from the plain Python one.">
+    <div class="max-w-4xl overflow-x-auto">
+      <table class="table-plain">
+        <thead><tr><th>Syntax</th><th>What it does</th></tr></thead>
+        <tbody>
+          {promptSyntax.map((p) => (
+            <tr><td>{p.syntax}</td><td>{p.desc}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </Section>
+
+  <Section class="print:px-6 print:py-6" n={3} id="magics" tone="alt" title="Magic commands" lede="% is a line magic, %% a cell magic that takes the whole block. %lsmagic lists them all; add ? to any of them for its help.">
+    <div class="magic-columns">
+      {magicGroups.map((group) => (
+        <section class="magic-group">
+          <h3 class="mb-3 text-base font-semibold text-ink">{group.title}</h3>
+          <div class="overflow-x-auto">
+          <table class="table-plain">
+            <thead>
+              <tr><th class="w-1/3">Magic</th><th>What it does</th></tr>
+            </thead>
+            <tbody>
+              {group.items.map((m) => (
+                <tr>
+                  <td class:list={[m.name.length > 20 && 'whitespace-normal!']}>
+                    {m.name}
+                    {m.cell && <span class="chip ml-2 px-1.5 py-0 text-[0.625rem]">cell</span>}
+                  </td>
+                  <td>
+                    {m.desc}
+                    {m.example && <div class="mt-1 font-mono text-xs text-ink-faint">{m.example}</div>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          </div>
+        </section>
+      ))}
+    </div>
+  </Section>
+
+  <Section class="print:px-6 print:py-6" n={4} id="shortcuts" title="Keyboard shortcuts" lede="Defaults for the terminal shell in emacs editing mode. Notebook front ends use their own bindings.">
+    <div class="magic-columns">
+      {shortcutGroups.map((group) => (
+        <section class="magic-group">
+          <h3 class="mb-3 text-base font-semibold text-ink">{group.title}</h3>
+          <div class="overflow-x-auto">
+          <table class="table-plain">
+            <thead>
+              <tr><th class="w-2/5">Keys</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              {group.items.map((s) => (
+                <tr>
+                  <td class="whitespace-normal!">
+                    {s.keys.map((k, i) => (
+                      <>
+                        {i > 0 && <span class="mx-1.5 text-ink-faint">or</span>}
+                        <span class="whitespace-nowrap">
+                          {caps(k).map((chunk, ci) => (
+                            <>
+                              {ci > 0 && ' '}
+                              {chunk.length === 1 && chunk[0] === '/' ? <span class="text-ink-faint">/</span> : chunk.map((cap, pi) => (
+                                <>
+                                  {pi > 0 && <span class="text-ink-faint">+</span>}
+                                  <kbd>{cap}</kbd>
+                                </>
+                              ))}
+                            </>
+                          ))}
+                        </span>
+                      </>
+                    ))}
+                  </td>
+                  <td>{s.desc}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          </div>
+        </section>
+      ))}
+    </div>
+    <p class="mt-8 max-w-3xl text-sm text-ink-muted">
+      Prefer modal editing? <code>ipython --TerminalInteractiveShell.editing_mode=vi</code> (or the same line in your
+      config file) gives you vi bindings, with a mode indicator in the prompt; <kbd>Esc</kbd> then the usual vi motions.
+      Every binding is configurable — see the <a href={links.docsShortcuts} target="_blank" rel="noopener">shortcuts documentation ↗</a>.
+    </p>
+  </Section>
+
+  <Section class="print:px-6 print:py-6" tone="alt" narrow>
+    <p class="text-sm text-ink-muted">
+      This page is a summary. The full references are the
+      <a href={links.docsMagics} target="_blank" rel="noopener">magics documentation ↗</a> and the
+      <a href={links.docsShortcuts} target="_blank" rel="noopener">keyboard shortcuts documentation ↗</a>. New here?
+      Start with the <a href={baseUrl('learn')}>guided tour</a>.
+    </p>
+  </Section>
+</PageLayout>
+
+<style>
+  .magic-columns {
+    column-gap: 3rem;
+  }
+  @media (min-width: 1024px) {
+    .magic-columns { column-count: 2; }
+  }
+  @media print {
+    .magic-columns { column-count: 2; column-gap: 2rem; }
+  }
+  .magic-group {
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 2.5rem;
+    display: inline-block;
+    width: 100%;
+  }
+</style>

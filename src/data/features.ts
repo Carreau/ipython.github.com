@@ -219,7 +219,7 @@ export const features: Feature[] = [
     title: 'Rich output, even in a terminal',
     blurb: 'Colour themes, tips at startup, and PNG images rendered inline in terminals that speak the Kitty graphics protocol.',
     detail:
-      'IPython 9 rewrote its colour handling: pick a theme with <code>--colors</code> or the <code>%colors</code> magic (<code>linux</code>, <code>lightbg</code>, <code>neutral</code>, <code>nocolor</code>, the pride themes, Gruvbox Dark…). Since 9.13, <code>image/png</code> output such as <code>IPython.display.Image</code> or a matplotlib figure is drawn directly in the terminal when it supports the Kitty graphics protocol (kitty, WezTerm, Ghostty, Konsole). And a one-line tip at startup helps you discover features like these; turn it off with <code>--no-tips</code>.',
+      'IPython 9 rewrote its colour handling: pick a theme with <code>--colors</code> or the <code>%colors</code> magic (<code>linux</code>, <code>lightbg</code>, <code>neutral</code>, <code>nocolor</code>, the pride themes, Gruvbox Dark…). Since 9.13, <code>image/png</code> output such as <code>IPython.display.Image</code> or a matplotlib figure is drawn directly in the terminal when it supports the Kitty graphics protocol (kitty, WezTerm, Ghostty, Konsole). And a one-line tip at startup helps you discover features like these; turn it off with <code>--no-tip</code>.',
     session: `
       $ ipython --colors=linux
       IPython 9.17.1 -- An enhanced Interactive Python. Type '?' for help.
@@ -234,5 +234,5 @@ export const features: Feature[] = [
   },
 ];
 
-/** The five features shown on the home page, in order. */
+/** The features shown on the home page, in order. */
 export const homeFeatureIds = ['autosuggest', 'introspection', 'magics', 'tracebacks', 'autoreload', 'shell'];

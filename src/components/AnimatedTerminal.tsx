@@ -1,4 +1,17 @@
-import { useEffect, useState, useMemo, useRef, type ReactElement } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+
+/**
+ * The hero terminal: a small set of real IPython transcripts, typed out line by
+ * line and cycled through, with dot navigation.
+ *
+ * Styling reuses the `.ipy-*` classes from `src/styles/global.css` so the
+ * animated terminal and the static `IPythonSession.astro` blocks look the same.
+ * Syntax colours match the `github-dark-default` Shiki theme used there.
+ *
+ * Transcript conventions are the same as IPythonSession:
+ *   In [1]: / ...: / Out[1]: / $ / ipdb>  prompts, plus inline markers
+ *   {{ghost:…}} {{cursor}} {{kbd:…}} {{dim:…}} {{err:…}} {{hl:…}}
+ */
 
 type TerminalExample = {
   name: string;
@@ -9,560 +22,406 @@ interface AnimatedTerminalProps {
   version?: string | null;
 }
 
-/**
- * Dedent a multiline string by removing common leading whitespace
- * and split it into lines
- */
+/** Remove common leading whitespace and split into lines. */
 function dedentAndSplit(text: string): string[] {
   const lines = text.split("\n");
+  while (lines.length > 0 && lines[0].trim().length === 0) lines.shift();
+  while (lines.length > 0 && lines[lines.length - 1].trim().length === 0) lines.pop();
 
-  // Trim leading and trailing empty lines
-  while (lines.length > 0 && lines[0].trim().length === 0) {
-    lines.shift();
-  }
-  while (lines.length > 0 && lines[lines.length - 1].trim().length === 0) {
-    lines.pop();
-  }
-
-  // Find the minimum indentation (excluding empty lines)
   let minIndent = Infinity;
   for (const line of lines) {
     if (line.trim().length > 0) {
-      const indent = line.match(/^(\s*)/)?.[1].length || 0;
-      minIndent = Math.min(minIndent, indent);
+      minIndent = Math.min(minIndent, line.match(/^(\s*)/)?.[1].length ?? 0);
     }
   }
-
-  // If no indentation found, return lines as-is
-  if (minIndent === Infinity) {
-    return lines;
-  }
-
-  // Remove the common indentation from all lines
-  return lines.map((line) => {
-    if (line.trim().length === 0) {
-      return "";
-    }
-    return line.slice(minIndent);
-  });
+  if (!isFinite(minIndent)) return lines;
+  return lines.map((line) => (line.trim().length === 0 ? "" : line.slice(minIndent)));
 }
 
-const getExamples = (version: string = "9.8.0"): TerminalExample[] => [
+const getExamples = (version: string = "9.17.1"): TerminalExample[] => [
   {
-    name: "NumPy Basics",
+    name: "Autosuggestions",
     lines: dedentAndSplit(`
       $ ipython
-      IPython ${version} -- An enhanced Interactive Python
-      Type 'copyright', 'credits' or 'license' for more information
-      
-      In [1]: import numpy as np
-      
-      In [2]: data = np.array([1, 2, 3, 4, 5])
-      
-      In [3]: data.mean()
-      Out[3]: 3.0
-    `),
-  },
-  {
-    name: "Performance & Plotting",
-    lines: dedentAndSplit(`
-      $ ipython
-      IPython ${version} -- An enhanced Interactive Python
-      
-      In [1]: %timeit sum(range(1000))
-      14.2 µs ± 245 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)
-      
-      In [2]: %matplotlib inline
-      
-      In [3]: import matplotlib.pyplot as plt
-    `),
-  },
-  {
-    name: "Functions",
-    lines: dedentAndSplit(`
-      $ ipython
-      IPython ${version} -- An enhanced Interactive Python
-      
-      In [1]: def fibonacci(n):
-         ...:     if n <= 1:
-         ...:         return n
-         ...:     return fibonacci(n-1) + fibonacci(n-2)
-         ...: 
-      
-      In [2]: fibonacci(10)
-      Out[2]: 55
-    `),
-  },
-  {
-    name: "Async",
-    lines: dedentAndSplit(`
-      $ ipython
-      IPython ${version} -- An enhanced Interactive Python
-    
-      In [1]: # we will use await at top level !
-         ...: import asyncio
-      
-      In [2]: async def fetch_data():
-         ...:     await asyncio.sleep(0.1)
-         ...:     return "Data fetched!"
-         ...: 
+      IPython ${version} -- An enhanced Interactive Python.
 
-      In [3]: await fetch_data()
-      Out[3]: 'Data fetched!'
-      
-      In [4]: async def process_items(items):
-         ...:     results = []
-         ...:     for item in items:
-         ...:         await asyncio.sleep(0.05)
-         ...:         results.append(item * 2)
-         ...:     return results
-      
-      In [5]: await process_items([1, 2, 3])
-      Out[5]: [2, 4, 6]
+      In [1]: import pandas as pd
+
+      In [2]: df = pd.read_csv("sales-2026.csv")
+
+      In [3]: df.gr{{ghost:oupby("region").revenue.sum()}}{{cursor}}
+      {{dim:ghost text from your history — press → to accept}}
+
+      In [4]: df.groupby("region").revenue.sum().idxmax()
+      Out[4]: 'EMEA'
+
+      In [5]: df.columns{{kbd:Tab}}
     `),
   },
   {
-    name: "Object Introspection",
+    name: "Introspection",
     lines: dedentAndSplit(`
       $ ipython
-      IPython ${version} -- An enhanced Interactive Python
-      
+      IPython ${version} -- An enhanced Interactive Python.
+
       In [1]: import json
-      
+
       In [2]: json.dumps?
-      Signature: json.dumps(obj, *, skipkeys=False, ensure_ascii=True, ...)
+      Signature: json.dumps(obj, *, skipkeys=False, ...)
       Docstring: Serialize obj to a JSON formatted str.
-      
-      In [3]: json.dumps??
+      File:      /usr/lib/python3.13/json/__init__.py
+      Type:      function
+
+      In [3]: json.dumps??      {{dim:# the same, plus the source}}
       Source:
       def dumps(obj, *, skipkeys=False, ensure_ascii=True, ...):
-          return _default_encoder.encode(obj)
+          ...
+
+      In [4]: %quickref             {{dim:# or ? for the full help}}
     `),
   },
   {
-    name: "History System",
+    name: "Timing",
     lines: dedentAndSplit(`
       $ ipython
-      IPython ${version} -- An enhanced Interactive Python
-      
-      In [1]: x = 42
-      
-      In [2]: y = x * 2
-      
-      In [3]: y
-      Out[3]: 84
-      
-      In [4]: _
-      Out[4]: 84
-      
-      In [5]: _ih[1]
-      Out[5]: 'y = x * 2'
+      IPython ${version} -- An enhanced Interactive Python.
+
+      In [1]: %timeit sorted(range(10_000), reverse=True)
+      146 μs ± 1.9 μs per loop (mean ± std. dev. of 7 runs)
+
+      In [2]: %%time
+         ...: total = sum(x * x for x in range(2_000_000))
+         ...:
+      CPU times: user 118 ms, sys: 2 ms, total: 120 ms
+      Wall time: 121 ms
+
+      In [3]: %run analysis.py   {{dim:# keeps its variables around}}
+
+      In [4]: %who
+      df	 results	 total
     `),
   },
   {
-    name: "System Integration",
+    name: "Debugging",
     lines: dedentAndSplit(`
       $ ipython
-      IPython ${version} -- An enhanced Interactive Python
-      
-      In [1]: !echo "Hello from shell"
-      Hello from shell
-      
-      In [2]: files = !ls *.py
-      
-      In [3]: len(files)
-      Out[3]: 5
-      
-      In [4]: %cd /tmp
-      /tmp
+      IPython ${version} -- An enhanced Interactive Python.
+
+      In [1]: def mean(xs):
+         ...:     return sum(xs) / len(xs)
+
+      In [2]: mean([])
+      -----------------------------------------------------
+      ZeroDivisionError     Traceback (most recent call last)
+      Cell In[1], line 2, in mean(xs)
+      ----> 2     return sum(xs) / len(xs)
+
+      ZeroDivisionError: division by zero
+
+      In [3]: %debug
+      ipdb> xs
+      []
     `),
   },
   {
-    name: "Magic Commands",
+    name: "Top-level await",
     lines: dedentAndSplit(`
       $ ipython
-      IPython ${version} -- An enhanced Interactive Python
-      
-      In [1]: def slow_func():
-         ...:     return sum(range(10000))
-         ...: 
-      
-      In [2]: %timeit slow_func()
-      245 µs ± 12.3 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
-      
-      In [3]: %prun slow_func()
-           5 function calls in 0.000 seconds
+      IPython ${version} -- An enhanced Interactive Python.
+
+      In [1]: import httpx
+
+      In [2]: async with httpx.AsyncClient() as client:
+         ...:     r = await client.get("https://ipython.org")
+         ...:
+
+      In [3]: r.status_code
+      Out[3]: 200
+
+      In [4]: import asyncio
+
+      In [5]: await asyncio.sleep(0.1)
+      {{dim:await works at the prompt — no asyncio.run()}}
     `),
   },
   {
-    name: "Data Science",
+    name: "Autoreload",
     lines: dedentAndSplit(`
       $ ipython
-      IPython ${version} -- An enhanced Interactive Python
-      
-      In [1]: import pandas as pd
-      
-      In [2]: df = pd.DataFrame({'A': [1, 2, 3], 'B': [4, 5, 6]})
-      
-      In [3]: df.describe()
-      Out[3]: 
-                 A         B
-      count  3.000000  3.000000
-      mean   2.000000  5.000000
-      std    1.000000  1.000000
+      IPython ${version} -- An enhanced Interactive Python.
+
+      In [1]: %load_ext autoreload
+
+      In [2]: %autoreload 2
+
+      In [3]: from report import score
+
+      In [4]: score(df)     {{dim:# now edit report.py ...}}
+      Out[4]: 0.71
+
+      In [5]: score(df)     {{dim:# ... new code, same session}}
+      Out[5]: 0.83
     `),
   },
 ];
 
-const EXAMPLE_DELAY = 4000; // Delay before starting next example
+const LINE_DELAY = 300; // ms between lines appearing
+const BLANK_EXTRA = 250; // blank lines pause a little longer
+const EXAMPLE_DELAY = 4200; // pause on the finished transcript
+
+/* -------------------------------------------------------------- rendering */
+
+const MARKER = /(\{\{(?:ghost|kbd|dim|err|hl):[^}]*\}\}|\{\{cursor\}\})/;
+
+// github-dark-default, to match the Shiki theme used by IPythonSession.
+const SYNTAX = {
+  keyword: "#ff7b72",
+  string: "#a5d6ff",
+  number: "#79c0ff",
+  magic: "#d2a8ff",
+  comment: "var(--term-muted)",
+} as const;
+
+const KEYWORDS = [
+  "def", "class", "async", "await", "import", "from", "if", "elif", "else",
+  "return", "for", "while", "in", "as", "with", "and", "or", "not", "is",
+  "try", "except", "finally", "lambda", "yield", "True", "False", "None",
+];
+
+type Piece = { text: string; color?: string };
+
+/** Small Python highlighter: strings, comments, numbers, keywords, magics. */
+function highlightPython(text: string): Piece[] {
+  const pieces: Piece[] = [];
+  const re = new RegExp(
+    [
+      String.raw`(#[^\n]*)`, // comment
+      String.raw`('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")`, // string
+      String.raw`(^\s*%{1,2}[A-Za-z_]\w*|(?<![\w.])![A-Za-z_][\w-]*)`, // magic / shell
+      String.raw`(\b\d[\d_]*\.?\d*(?:[eE][-+]?\d+)?\b)`, // number
+      String.raw`(\b(?:${KEYWORDS.join("|")})\b)`, // keyword
+    ].join("|"),
+    "g",
+  );
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) pieces.push({ text: text.slice(last, m.index) });
+    const color = m[1]
+      ? SYNTAX.comment
+      : m[2]
+        ? SYNTAX.string
+        : m[3]
+          ? SYNTAX.magic
+          : m[4]
+            ? SYNTAX.number
+            : SYNTAX.keyword;
+    pieces.push({ text: m[0], color });
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) pieces.push({ text: text.slice(last) });
+  return pieces;
+}
+
+function renderMarker(marker: string, key: string): ReactNode {
+  if (marker === "{{cursor}}") return <span key={key} className="ipy-cursor" aria-hidden="true" />;
+  const parsed = marker.match(/^\{\{(\w+):([^}]*)\}\}$/);
+  if (!parsed) return <span key={key}>{marker}</span>;
+  const [, kind, text] = parsed;
+  if (kind === "kbd") return <span key={key} className="ipy-kbd">{text}</span>;
+  return <span key={key} className={`ipy-${kind}`}>{text}</span>;
+}
+
+/** Render one line's content: markers verbatim, the rest highlighted or plain. */
+function renderContent(text: string, code: boolean, plainClass: string): ReactNode[] {
+  const out: ReactNode[] = [];
+  text.split(MARKER).forEach((part, i) => {
+    if (!part) return;
+    if (part.startsWith("{{") && MARKER.test(part)) {
+      out.push(renderMarker(part, `m${i}`));
+      return;
+    }
+    if (!code) {
+      out.push(
+        <span key={`p${i}`} className={plainClass}>
+          {part}
+        </span>,
+      );
+      return;
+    }
+    highlightPython(part).forEach((piece, j) => {
+      out.push(
+        <span key={`c${i}-${j}`} style={piece.color ? { color: piece.color } : undefined}>
+          {piece.text}
+        </span>,
+      );
+    });
+  });
+  return out;
+}
+
+function TerminalLine({ line }: { line: string }) {
+  let m: RegExpMatchArray | null;
+  if ((m = line.match(/^(In \[\d+\]: ?)(.*)$/))) {
+    return (
+      <div>
+        <span className="ipy-in">{m[1]}</span>
+        {renderContent(m[2], true, "")}
+      </div>
+    );
+  }
+  if ((m = line.match(/^(\s*\.\.\.: ?)(.*)$/))) {
+    return (
+      <div>
+        <span className="ipy-in">{m[1]}</span>
+        {renderContent(m[2], true, "")}
+      </div>
+    );
+  }
+  if ((m = line.match(/^(Out\[\d+\]: ?)(.*)$/))) {
+    return (
+      <div>
+        <span className="ipy-out">{m[1]}</span>
+        {renderContent(m[2], true, "")}
+      </div>
+    );
+  }
+  if ((m = line.match(/^(\$ )(.*)$/))) {
+    return (
+      <div>
+        <span className="ipy-shell">{m[1]}</span>
+        {renderContent(m[2], false, "ipy-text")}
+      </div>
+    );
+  }
+  if ((m = line.match(/^(ipdb> )(.*)$/))) {
+    return (
+      <div>
+        <span className="ipy-ipdb">{m[1]}</span>
+        {renderContent(m[2], true, "")}
+      </div>
+    );
+  }
+  if (/^([A-Z]\w*(Error|Exception|Warning)\b|-{5,}|-+> )/.test(line)) {
+    return <div>{renderContent(line, false, "ipy-err")}</div>;
+  }
+  if (line.trim() === "") return <div>{" "}</div>;
+  return <div>{renderContent(line, false, "ipy-text")}</div>;
+}
+
+/* ------------------------------------------------------------- component */
 
 export default function AnimatedTerminal({ version }: AnimatedTerminalProps) {
   const examples = useMemo(() => getExamples(version || undefined), [version]);
   const [currentExample, setCurrentExample] = useState(0);
-  const [displayedLines, setDisplayedLines] = useState<string[]>([]);
-  const [currentLineIndex, setCurrentLineIndex] = useState(0);
+  const [shown, setShown] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
+  const [reduced, setReduced] = useState(false);
   const isVisibleRef = useRef(true);
 
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      const visible = !document.hidden;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReduced(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  useEffect(() => {
+    const set = (visible: boolean) => {
       isVisibleRef.current = visible;
       setIsVisible(visible);
     };
+    const onVisibility = () => set(!document.hidden);
+    const onBlur = () => set(false);
+    const onFocus = () => set(!document.hidden);
 
-    const handleWindowBlur = () => {
-      isVisibleRef.current = false;
-      setIsVisible(false);
-    };
-
-    const handleWindowFocus = () => {
-      const visible = !document.hidden;
-      isVisibleRef.current = visible;
-      setIsVisible(visible);
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("blur", handleWindowBlur);
-    window.addEventListener("focus", handleWindowFocus);
-    const initialVisible = !document.hidden && document.hasFocus();
-    isVisibleRef.current = initialVisible;
-    setIsVisible(initialVisible);
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("blur", onBlur);
+    window.addEventListener("focus", onFocus);
+    set(!document.hidden && document.hasFocus());
 
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("blur", handleWindowBlur);
-      window.removeEventListener("focus", handleWindowFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
     };
   }, []);
 
-  // Function to switch to a specific example
-  const switchToExample = (index: number) => {
-    if (index >= 0 && index < examples.length) {
-      setCurrentExample(index);
-      setCurrentLineIndex(0);
-      setDisplayedLines([]);
-    }
-  };
+  const example = examples[currentExample];
 
   useEffect(() => {
-    // Pause animation when page is not visible
-    if (!isVisible) {
+    if (!example) return;
+    // Reduced motion: show the finished transcript at once and stay put.
+    if (reduced) {
+      setShown(example.lines.length);
       return;
     }
+    if (!isVisible) return;
 
-    const example = examples[currentExample];
-    if (!example) return;
-
-    const baseLineDelay = 300; // delay between lines appearing
-    const currentLine = example.lines[currentLineIndex];
-    // Add 100ms delay for empty lines
-    const lineDelay =
-      currentLine && currentLine.trim().length === 0
-        ? baseLineDelay + 300
-        : baseLineDelay;
-
-    if (currentLineIndex < example.lines.length) {
-      // Show next line
+    if (shown < example.lines.length) {
+      const line = example.lines[shown];
+      const delay = line && line.trim().length === 0 ? LINE_DELAY + BLANK_EXTRA : LINE_DELAY;
       const timer = setTimeout(() => {
-        if (isVisibleRef.current) {
-          setDisplayedLines((prev) => [
-            ...prev,
-            example.lines[currentLineIndex],
-          ]);
-          setCurrentLineIndex((prev) => prev + 1);
-        }
-      }, lineDelay);
-
-      return () => clearTimeout(timer);
-    } else {
-      // All lines displayed, wait then cycle to next example
-      const timer = setTimeout(() => {
-        if (isVisibleRef.current) {
-          setCurrentExample((prev) => (prev + 1) % examples.length);
-          setCurrentLineIndex(0);
-          setDisplayedLines([]);
-        }
-      }, EXAMPLE_DELAY);
-
+        if (isVisibleRef.current) setShown((n) => n + 1);
+      }, delay);
       return () => clearTimeout(timer);
     }
-  }, [currentExample, currentLineIndex, examples, isVisible]);
 
-  const getLinePrefix = (
-    line: string
-  ): { prefix: string; content: string; prefixColor: string } => {
-    if (line.startsWith("In [")) {
-      const match = line.match(/^(In \[\d+\]:\s*)(.*)$/);
-      if (match) {
-        return {
-          prefix: match[1],
-          content: match[2],
-          prefixColor: "text-theme-primary",
-        };
+    const timer = setTimeout(() => {
+      if (isVisibleRef.current) {
+        setCurrentExample((prev) => (prev + 1) % examples.length);
+        setShown(0);
       }
-    }
-    if (line.startsWith("Out[")) {
-      const match = line.match(/^(Out\[\d+\]:\s*)(.*)$/);
-      if (match) {
-        return {
-          prefix: match[1],
-          content: match[2],
-          prefixColor: "text-theme-accent",
-        };
-      }
-    }
-    if (line.startsWith("   ...:")) {
-      return {
-        prefix: "   ...: ",
-        content: line.substring(8),
-        prefixColor: "text-gray-500 dark:text-gray-400",
-      };
-    }
-    return { prefix: "", content: line, prefixColor: "" };
+    }, EXAMPLE_DELAY);
+    return () => clearTimeout(timer);
+  }, [example, examples.length, shown, isVisible, reduced]);
+
+  const switchToExample = (index: number) => {
+    if (index < 0 || index >= examples.length) return;
+    setCurrentExample(index);
+    setShown(reduced ? examples[index].lines.length : 0);
   };
 
-  const getLineColor = (line: string): string => {
-    if (line.startsWith("$")) {
-      return "text-theme-secondary";
-    }
-    if (line.startsWith("Out[")) {
-      return "text-theme-accent";
-    }
-    if (line.startsWith("IPython") || line.includes("Type")) {
-      return "text-gray-600 dark:text-gray-300";
-    }
-    if (line.trim() === "") {
-      return "text-gray-500 dark:text-gray-400";
-    }
-    return "text-gray-700 dark:text-gray-300";
-  };
-
-  /**
-   * Highlight Python syntax in a line of code
-   */
-  const highlightPython = (text: string): ReactElement[] => {
-    if (!text.trim()) {
-      return [<span key="empty">{text || "\u00A0"}</span>];
-    }
-
-    const keywords = [
-      "def",
-      "async",
-      "await",
-      "import",
-      "from",
-      "if",
-      "elif",
-      "else",
-      "return",
-      "for",
-      "in",
-      "as",
-      "and",
-      "or",
-      "not",
-      "True",
-      "False",
-      "None",
-    ];
-
-    // Find comment position (comments take priority)
-    const commentMatch = text.match(/#.*$/);
-    const commentIndex = commentMatch ? commentMatch.index! : text.length;
-    const codeText = text.slice(0, commentIndex);
-    const commentText = commentMatch ? commentMatch[0] : "";
-
-    // Match strings (single and double quoted)
-    const stringRegex = /(['"])(?:(?=(\\?))\2.)*?\1/g;
-    let stringMatch;
-    const stringMatches: Array<{ start: number; end: number; text: string }> = [];
-    while ((stringMatch = stringRegex.exec(codeText)) !== null) {
-      stringMatches.push({
-        start: stringMatch.index,
-        end: stringMatch.index + stringMatch[0].length,
-        text: stringMatch[0],
-      });
-    }
-
-    // Match numbers
-    const numberRegex = /\b\d+\.?\d*\b/g;
-    let numberMatch;
-    const numberMatches: Array<{ start: number; end: number; text: string }> = [];
-    while ((numberMatch = numberRegex.exec(codeText)) !== null) {
-      numberMatches.push({
-        start: numberMatch.index,
-        end: numberMatch.index + numberMatch[0].length,
-        text: numberMatch[0],
-      });
-    }
-
-    // Match keywords
-    const keywordRegex = new RegExp(`\\b(${keywords.join("|")})\\b`, "g");
-    let keywordMatch;
-    const keywordMatches: Array<{ start: number; end: number; text: string }> = [];
-    while ((keywordMatch = keywordRegex.exec(codeText)) !== null) {
-      keywordMatches.push({
-        start: keywordMatch.index,
-        end: keywordMatch.index + keywordMatch[0].length,
-        text: keywordMatch[0],
-      });
-    }
-
-    // Combine all matches and sort by position
-    const allMatches = [
-      ...stringMatches.map((m) => ({ ...m, type: "string" })),
-      ...numberMatches.map((m) => ({ ...m, type: "number" })),
-      ...keywordMatches.map((m) => ({ ...m, type: "keyword" })),
-    ].sort((a, b) => a.start - b.start);
-
-    // Remove overlapping matches (strings take priority, then numbers, then keywords)
-    const filteredMatches: typeof allMatches = [];
-    for (const match of allMatches) {
-      const overlaps = filteredMatches.some(
-        (existing) =>
-          (match.start >= existing.start && match.start < existing.end) ||
-          (match.end > existing.start && match.end <= existing.end) ||
-          (match.start <= existing.start && match.end >= existing.end)
-      );
-      if (!overlaps) {
-        filteredMatches.push(match);
-      }
-    }
-
-    // Build parts array for the code part (before comment)
-    const resultParts: Array<{ text: string; type: string }> = [];
-    let currentIndex = 0;
-    filteredMatches.forEach((match) => {
-      if (match.start > currentIndex) {
-        resultParts.push({
-          text: codeText.slice(currentIndex, match.start),
-          type: "text",
-        });
-      }
-      resultParts.push({ text: match.text, type: match.type });
-      currentIndex = match.end;
-    });
-    if (currentIndex < codeText.length) {
-      resultParts.push({
-        text: codeText.slice(currentIndex),
-        type: "text",
-      });
-    }
-
-    // If no matches were found, add the whole codeText as text
-    if (resultParts.length === 0 && codeText.length > 0) {
-      resultParts.push({ text: codeText, type: "text" });
-    }
-
-    // Add comment if it exists
-    if (commentText) {
-      resultParts.push({ text: commentText, type: "comment" });
-    }
-
-    if (resultParts.length === 0) {
-      resultParts.push({ text, type: "text" });
-    }
-
-    return resultParts.map((part, index) => {
-      const className =
-        part.type === "keyword"
-          ? "text-theme-primary"
-          : part.type === "string"
-            ? "text-theme-secondary"
-            : part.type === "number"
-              ? "text-theme-accent"
-              : part.type === "comment"
-                ? "text-gray-500 dark:text-gray-400 italic opacity-75"
-                : "";
-      return (
-        <span key={index} className={className}>
-          {part.text}
-        </span>
-      );
-    });
-  };
-
-  // Calculate max height based on the longest example
+  // Reserve the height of the tallest transcript so nothing jumps.
   const maxLines = Math.max(...examples.map((ex) => ex.lines.length));
-  const lineHeight = 1.25; // rem (20px for text-sm)
-  const padding = 1 * 2; // rem (top + bottom padding)
-  const controlsHeight = 2; // rem (window controls height)
-  const minHeight = `${maxLines * lineHeight + padding + controlsHeight}rem`;
+  const bodyHeight = `calc(${maxLines} * 1.65 * 0.8125rem + 2rem)`;
 
   return (
     <div>
-      <div
-        className="bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden font-mono text-sm"
-        style={{ minHeight }}
-      >
-        {/* macOS Window Controls */}
-        <div className="bg-gray-200 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700 px-4 py-2 flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-red-500"></div>
-          <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
-        </div>
+      <figure className="ipy-session">
+        <figcaption className="ipy-chrome">
+          <span className="ipy-dots" aria-hidden="true">
+            <i style={{ background: "#ff5f57" }} />
+            <i style={{ background: "#febc2e" }} />
+            <i style={{ background: "#28c840" }} />
+          </span>
+          <span className="ml-2 truncate">ipython — {example?.name}</span>
+        </figcaption>
+        <pre style={{ minHeight: bodyHeight }} aria-live="off">
+          <code>
+            {example?.lines.slice(0, shown).map((line, i) => (
+              <TerminalLine key={`${currentExample}-${i}`} line={line} />
+            ))}
+          </code>
+        </pre>
+      </figure>
 
-        {/* Terminal Content */}
-        <div className="p-3 whitespace-pre">
-          {displayedLines.map((line, index) => {
-            const { prefix, content, prefixColor } = getLinePrefix(line);
-            const lineColor = getLineColor(line);
-            
-            // Check if this line should have syntax highlighting (Python code)
-            const isPythonCode =
-              line.startsWith("In [") ||
-              line.startsWith("   ...:") ||
-              (line.startsWith("Out[") && content.trim().length > 0);
-
-            return (
-              <div key={index} className={`${lineColor} whitespace-pre`}>
-                {prefix && <span className={prefixColor}>{prefix}</span>}
-                {isPythonCode && content.trim()
-                  ? highlightPython(content)
-                  : content || "\u00A0"}
-              </div>
-            );
-          })}
-          {displayedLines.length === 0 && (
-            <div className="text-theme-secondary whitespace-pre">$ ipython</div>
-          )}
-        </div>
-      </div>
-
-      {/* Indicator Dots */}
-      <div className="flex justify-center items-center gap-2 mt-4">
-        {examples.map((example, index) => (
+      <div className="mt-4 flex items-center justify-center gap-2.5">
+        {examples.map((ex, index) => (
           <button
-            key={index}
+            key={ex.name}
+            type="button"
             onClick={() => switchToExample(index)}
-            className={`transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 rounded-full ${
-              index === currentExample
-                ? "w-3 h-3 bg-theme-accent border-2 border-theme-primary scale-125"
-                : "w-2 h-2 bg-gray-400 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-500"
-            }`}
-            aria-label={`Go to ${example.name}`}
-            title={example.name}
+            className={
+              "h-2.5 w-2.5 rounded-full transition " +
+              (index === currentExample
+                ? "scale-125 bg-[var(--prompt-in)]"
+                : "bg-[var(--term-line)] hover:bg-[var(--term-muted)]")
+            }
+            aria-label={`Show example: ${ex.name}`}
+            aria-current={index === currentExample ? "true" : undefined}
+            title={ex.name}
           />
         ))}
       </div>
