@@ -173,9 +173,13 @@ individuals); citation with BibTeX (Pérez & Granger, CiSE 2007).
 
 ## 6. Design direction
 
-- **"A terminal you'd want to look at."** Dark navy hero with a real
-  terminal; the rest of the page is light, airy and text-first. Sections are
-  numbered with IPython prompts (`In [1]:`, `In [2]:`) as a recurring motif.
+- **"A terminal you'd want to look at."** The hero is painted with the
+  active colour theme's gradient (so pride and seasonal themes stay visible)
+  and holds a real terminal; the rest of the page is light, airy and
+  text-first. Light mode is light everywhere, terminals included: transcripts
+  use a light palette like IPython's own `lightbg` scheme and switch to a navy
+  `linux`-style palette in dark mode. Sections are numbered with IPython
+  prompts (`In [1]:`, `In [2]:`) as a recurring motif.
 - **Colour.** Keep the teal brand and derive every accent from the existing
   `--theme-*` variables so the colour themes and the seasonal banner keep
   working. Body text and links are clamped to WCAG-AA-safe colours whatever a
