@@ -1,0 +1,60 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import Section from '../components/Section.astro';
+import IPythonSession from '../components/IPythonSession.astro';
+import CommandBlock from '../components/CommandBlock.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import Callout from '../components/Callout.astro';
+import Card from '../components/Card.astro';
+import Stat from '../components/Stat.astro';
+import { features } from '../data/features';
+import { buildData, formatDate, compact } from '../lib/buildData';
+const f = features.find((x) => x.id === 'tracebacks')!;
+const g = features.find((x) => x.id === 'autosuggest')!;
+---
+
+<PageLayout title="Style guide" eyebrow="In [0]:" lede="Internal page used to check the components. Not linked from anywhere.">
+  <Section n={1} title="Buttons, chips and stats" lede="Everything derives from --theme-primary / --theme-secondary so colour themes keep working.">
+    <div class="flex flex-wrap gap-3">
+      <a href="#" class="btn btn-primary">Primary</a>
+      <a href="#" class="btn btn-secondary">Secondary</a>
+      <a href="#" class="btn btn-ghost">Ghost</a>
+      <span class="chip">chip</span>
+      <span class="chip">Python ≥ 3.11</span>
+    </div>
+    <div class="mt-10 grid grid-cols-2 gap-8 md:grid-cols-4">
+      <Stat value={buildData.version} label="Latest release" sub={formatDate(buildData.releaseDate)} />
+      <Stat value={compact(buildData.stars)} label="GitHub stars" />
+      <Stat value="2001" label="First release" />
+      <Stat value="Monthly" label="Release cadence" />
+    </div>
+  </Section>
+  <Section n={2} title="Transcripts and code" tone="alt">
+    <div class="grid gap-8 lg:grid-cols-2">
+      <IPythonSession session={f.session} title="ipython — tracebacks" />
+      <IPythonSession session={g.session} title="ipython — autosuggest" />
+    </div>
+    <div class="mt-8 grid gap-8 lg:grid-cols-2">
+      <CommandBlock command="pip install ipython" label="Install" />
+      <CodeBlock title="ipython_config.py" code={`c = get_config()\nc.InteractiveShellApp.extensions = ["autoreload"]\nc.InteractiveShellApp.exec_lines = ["%autoreload 2"]`} />
+    </div>
+  </Section>
+  <Section n={3} title="Cards and callouts">
+    <div class="grid gap-5 md:grid-cols-3">
+      <Card title="Documentation" href="https://ipython.readthedocs.io" external>Guides, configuration and the full API reference.</Card>
+      <Card title="Plain card">No link, just content with <code>inline code</code>.</Card>
+      <Card title="Another" href="#">Hover me.</Card>
+    </div>
+    <Callout class="mt-8" title="IPython vs Jupyter" tone="info">IPython is the Python shell and kernel; Jupyter is the notebook and the protocol around it.</Callout>
+    <Callout class="mt-4" tone="tip">Tip tone.</Callout>
+    <Callout class="mt-4" tone="warn">Warning tone.</Callout>
+    <div class="prose mt-10">
+      <h2>Prose heading</h2>
+      <p>Paragraph with a <a href="#">link</a>, <code>code</code>, <kbd>Ctrl</kbd>+<kbd>R</kbd> and <strong>bold</strong>.</p>
+      <ul><li>One</li><li>Two</li></ul>
+    </div>
+  </Section>
+  <Section n={4} title="Dark section" tone="dark" lede="Used for the ecosystem or a closing call to action.">
+    <a href="#" class="btn btn-on-dark">On dark</a>
+  </Section>
+</PageLayout>

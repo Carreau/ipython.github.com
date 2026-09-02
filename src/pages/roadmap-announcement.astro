@@ -1,17 +1,10 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Navigation from '../components/Navigation.astro';
-import Footer from '../components/Footer.astro';
-import PageHeader from '../components/PageHeader.astro';
+import ArchiveLayout from '../layouts/ArchiveLayout.astro';
 import { baseUrl } from '../lib/utils';
 ---
 
-<BaseLayout title="Roadmap to 1.0 and Beyond">
-  <Navigation />
-  <PageHeader title="Roadmap to 1.0 and Beyond" />
-  
-  <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="prose prose-lg dark:prose-invert max-w-none">
+<ArchiveLayout title="Roadmap to 1.0 and Beyond" date="April 2013" author="Paul Ivanov">
+
       <p><strong>TL;DR summary:</strong> Hi! IPython 1.0 coming mid-August 2013. See the <a href={baseUrl('sloan-grant')}>grant</a> which is funding the bulk of the work, as well as our <a href="https://github.com/ipython/ipython/wiki/Roadmap:-IPython" target="_blank" rel="noopener noreferrer">roadmap</a> for achieving the grant's objectives.</p>
       
       <p>There's been a lot of excitement on about the grant the IPython team received from the Sloan Foundation. The easiest way to communicate the contents of the Sloan grant is to just provide it in its entirety, which is what we've done with direct links for <a href={baseUrl('_static/sloangrant/sloan-grant.html')}>html</a> and <a href={baseUrl('_static/sloangrant/sloan-grant.pdf')}>pdf</a> version.</p>
@@ -33,8 +26,4 @@ import { baseUrl } from '../lib/utils';
       <p>best,</p>
       
       <p>Paul Ivanov</p>
-    </div>
-  </main>
-  
-  <Footer />
-</BaseLayout>
+</ArchiveLayout>

@@ -1,0 +1,41 @@
+---
+/**
+ * Standard inner page: navigation, optional page header, content, footer.
+ * Use `noHeader` for pages that draw their own hero (e.g. the home page).
+ */
+import BaseLayout from './BaseLayout.astro';
+import Navigation from '../components/Navigation.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Short mono label above the h1, e.g. "In [1]:" or "Reference". */
+  eyebrow?: string;
+  /** Paragraph under the h1. Defaults to `description`. */
+  lede?: string;
+  noHeader?: boolean;
+  bare?: boolean;
+  image?: string;
+}
+
+const { title, description, eyebrow, lede = description, noHeader = false, bare = false, image } = Astro.props;
+---
+
+<BaseLayout title={title} description={description} bare={bare} image={image}>
+  <Navigation />
+  <main id="main">
+    {!noHeader && (
+      <header class="border-b border-line bg-surface-2">
+        <div class="container-x py-14 sm:py-20">
+          {eyebrow && <p class="eyebrow mb-3">{eyebrow}</p>}
+          <h1 class="text-4xl font-bold sm:text-5xl">{title}</h1>
+          {lede && <p class="mt-4 max-w-2xl text-lg text-ink-muted">{lede}</p>}
+          <slot name="header-extra" />
+        </div>
+      </header>
+    )}
+    <slot />
+  </main>
+  <Footer />
+</BaseLayout>

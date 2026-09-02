@@ -1,0 +1,24 @@
+---
+/** Bordered card. Pass `href` to make the whole card a link. */
+interface Props {
+  title?: string;
+  href?: string;
+  external?: boolean;
+  class?: string;
+}
+const { title, href, external = false, class: cls = '' } = Astro.props;
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag
+  href={href}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener' : undefined}
+  class:list={['card block no-underline', cls]}
+>
+  <slot name="icon" />
+  {title && <h3 class="text-base font-semibold text-ink">{title}{external && <span aria-hidden="true" class="ml-1 text-ink-faint">↗</span>}</h3>}
+  <div class="mt-1.5 text-sm text-ink-muted">
+    <slot />
+  </div>
+</Tag>

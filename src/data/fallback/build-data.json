@@ -1,0 +1,151 @@
+{
+  "version": "9.17.1",
+  "releaseDate": "2026-09-01",
+  "requiresPython": ">=3.11",
+  "stars": 16776,
+  "forks": 4513,
+  "openIssues": 1278,
+  "contributors": [
+    {
+      "login": "minrk",
+      "avatar_url": "https://avatars.githubusercontent.com/u/151929?v=4",
+      "html_url": "https://github.com/minrk",
+      "contributions": 5632,
+      "name": "Min RK"
+    },
+    {
+      "login": "Carreau",
+      "avatar_url": "https://avatars.githubusercontent.com/u/335567?v=4",
+      "html_url": "https://github.com/Carreau",
+      "contributions": 5225,
+      "name": "M Bussonnier"
+    },
+    {
+      "login": "takluyver",
+      "avatar_url": "https://avatars.githubusercontent.com/u/327925?v=4",
+      "html_url": "https://github.com/takluyver",
+      "contributions": 3417,
+      "name": "Thomas Kluyver"
+    },
+    {
+      "login": "jdfreder",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3292874?v=4",
+      "html_url": "https://github.com/jdfreder",
+      "contributions": 1898,
+      "name": "Jonathan Frederic"
+    },
+    {
+      "login": "ellisonbg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/27600?v=4",
+      "html_url": "https://github.com/ellisonbg",
+      "contributions": 1778,
+      "name": "Brian E. Granger"
+    },
+    {
+      "login": "fperez",
+      "avatar_url": "https://avatars.githubusercontent.com/u/57394?v=4",
+      "html_url": "https://github.com/fperez",
+      "contributions": 1776,
+      "name": "Fernando P\u00e9rez"
+    },
+    {
+      "login": "vivainio",
+      "avatar_url": "https://avatars.githubusercontent.com/u/557579?v=4",
+      "html_url": "https://github.com/vivainio",
+      "contributions": 802,
+      "name": "Ville Vainio"
+    },
+    {
+      "login": "ivanov",
+      "avatar_url": "https://avatars.githubusercontent.com/u/118211?v=4",
+      "html_url": "https://github.com/ivanov",
+      "contributions": 691,
+      "name": "Paul Ivanov"
+    },
+    {
+      "login": "krassowski",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5832902?v=4",
+      "html_url": "https://github.com/krassowski",
+      "contributions": 317,
+      "name": "Micha\u0142 Krassowski"
+    },
+    {
+      "login": "jasongrout",
+      "avatar_url": "https://avatars.githubusercontent.com/u/192614?v=4",
+      "html_url": "https://github.com/jasongrout",
+      "contributions": 219,
+      "name": "Jason Grout"
+    },
+    {
+      "login": "bfroehle",
+      "avatar_url": "https://avatars.githubusercontent.com/u/204333?v=4",
+      "html_url": "https://github.com/bfroehle",
+      "contributions": 211,
+      "name": "Bradley M. Froehle"
+    },
+    {
+      "login": "jhamrick",
+      "avatar_url": "https://avatars.githubusercontent.com/u/83444?v=4",
+      "html_url": "https://github.com/jhamrick",
+      "contributions": 210,
+      "name": "Jessica B. Hamrick"
+    },
+    {
+      "login": "damianavila",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1640669?v=4",
+      "html_url": "https://github.com/damianavila",
+      "contributions": 191,
+      "name": "Damian Avila"
+    },
+    {
+      "login": "GaelVaroquaux",
+      "avatar_url": "https://avatars.githubusercontent.com/u/208217?v=4",
+      "html_url": "https://github.com/GaelVaroquaux",
+      "contributions": 180,
+      "name": "Gael Varoquaux"
+    },
+    {
+      "login": "Darshan808",
+      "avatar_url": "https://avatars.githubusercontent.com/u/127468609?v=4",
+      "html_url": "https://github.com/Darshan808",
+      "contributions": 172,
+      "name": "Darshan Poudel"
+    },
+    {
+      "login": "SylvainCorlay",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2397974?v=4",
+      "html_url": "https://github.com/SylvainCorlay",
+      "contributions": 140,
+      "name": "Sylvain Corlay"
+    },
+    {
+      "login": "tkf",
+      "avatar_url": "https://avatars.githubusercontent.com/u/29282?v=4",
+      "html_url": "https://github.com/tkf",
+      "contributions": 136,
+      "name": "Takafumi Arakaki"
+    },
+    {
+      "login": "doerwalter",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1387028?v=4",
+      "html_url": "https://github.com/doerwalter",
+      "contributions": 113,
+      "name": "Walter D\u00f6rwald"
+    },
+    {
+      "login": "jstenar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/281420?v=4",
+      "html_url": "https://github.com/jstenar",
+      "contributions": 111,
+      "name": "J\u00f6rgen Stenarson"
+    },
+    {
+      "login": "rgbkrk",
+      "avatar_url": "https://avatars.githubusercontent.com/u/836375?v=4",
+      "html_url": "https://github.com/rgbkrk",
+      "contributions": 99,
+      "name": "Kyle Kelley"
+    }
+  ],
+  "fetchedAt": "2026-09-02T22:00:00Z"
+}

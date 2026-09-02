@@ -1,17 +1,10 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Navigation from '../components/Navigation.astro';
-import Footer from '../components/Footer.astro';
-import PageHeader from '../components/PageHeader.astro';
+import ArchiveLayout from '../layouts/ArchiveLayout.astro';
 import { baseUrl } from '../lib/utils';
 ---
 
-<BaseLayout title="Sloan Foundation Grant">
-  <Navigation />
-  <PageHeader title="Sloan Foundation Grant" />
-  
-  <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="prose prose-lg dark:prose-invert max-w-none">
+<ArchiveLayout title="Sloan Foundation Grant" date="January 2013">
+
       <p>We are pleased to announce that the IPython project has received a $1.15M grant from <a href="http://sloan.org" target="_blank" rel="noopener noreferrer">the Alfred P. Sloan foundation</a>, that will support IPython development for the next two years (1/1/2013-12/31/2014). The grant, which is being made to the University of California, Berkeley and California Polytechnic State University, San Luis Obispo, will enable the project to focus on developing the IPython Notebook as a general tool for scientific and technical computing that is open, collaborative and reproducible.</p>
       
       <p>The grant (<a href={baseUrl('_static/sloangrant/sloan-grant.html')}>html</a> | <a href={baseUrl('_static/sloangrant/sloan-grant.pdf')}>pdf</a>) will fund the following project staff for two years:</p>
@@ -42,8 +35,4 @@ import { baseUrl } from '../lib/utils';
       <p>And last but not least, we want to thank the entire community of users and developers of IPython, without whom this would not have been possible: IPython is a project driven strictly by the real-world needs of its users, and therein lies its value.</p>
       
       <p>You can view the full grant here: <a href={baseUrl('_static/sloangrant/sloan-grant.html')}>html</a> <a href={baseUrl('_static/sloangrant/sloan-grant.pdf')}>pdf</a>.</p>
-    </div>
-  </main>
-  
-  <Footer />
-</BaseLayout>
+</ArchiveLayout>

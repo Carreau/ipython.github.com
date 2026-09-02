@@ -1,0 +1,35 @@
+---
+/**
+ * A page section with the IPython prompt motif as eyebrow: `In [n]:`.
+ * tone: "default" (page surface) | "alt" (tinted) | "dark" (terminal-like).
+ */
+interface Props {
+  n?: number | string;
+  id?: string;
+  title?: string;
+  lede?: string;
+  tone?: 'default' | 'alt' | 'dark';
+  /** Narrow (prose) width instead of the wide container. */
+  narrow?: boolean;
+  class?: string;
+}
+const { n, id, title, lede, tone = 'default', narrow = false, class: cls = '' } = Astro.props;
+const toneClass = {
+  default: 'bg-surface',
+  alt: 'bg-surface-2 border-y border-line',
+  dark: 'bg-term text-term-ink',
+}[tone];
+---
+
+<section id={id} class:list={['py-16 sm:py-24', toneClass, cls]}>
+  <div class:list={[narrow ? 'container-prose' : 'container-x']}>
+    {(n !== undefined || title) && (
+      <div class="mb-10 max-w-2xl">
+        {n !== undefined && <p class:list={['eyebrow mb-3', tone === 'dark' && 'text-prompt-in']}>In [{n}]:</p>}
+        {title && <h2 class:list={['text-3xl font-bold sm:text-4xl', tone === 'dark' && 'text-white']}>{title}</h2>}
+        {lede && <p class:list={['mt-4 text-lg', tone === 'dark' ? 'text-term-muted' : 'text-ink-muted']}>{lede}</p>}
+      </div>
+    )}
+    <slot />
+  </div>
+</section>

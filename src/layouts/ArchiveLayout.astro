@@ -1,0 +1,40 @@
+---
+/**
+ * Layout for historical pages (announcements, surveys, presentations).
+ * Content is rendered as long-form prose with an "archived" notice.
+ */
+import PageLayout from './PageLayout.astro';
+import { baseUrl } from '../lib/utils';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Human readable date or year, e.g. "January 2013". */
+  date?: string;
+  /** Optional author line. */
+  author?: string;
+}
+
+const { title, description, date, author } = Astro.props;
+---
+
+<PageLayout title={title} description={description} noHeader>
+  <div class="brand-strip"></div>
+  <article class="container-prose py-12 sm:py-16">
+    <p class="mb-6 flex flex-wrap items-center gap-2 text-sm text-ink-faint">
+      <a href={baseUrl('archive')} class="no-underline hover:underline">Archive</a>
+      <span aria-hidden="true">/</span>
+      {date && <span>{date}</span>}
+      {author && <span>· {author}</span>}
+    </p>
+    <h1 class="text-3xl font-bold sm:text-4xl">{title}</h1>
+    <div class="prose mt-8">
+      <slot />
+    </div>
+    <aside class="mt-12 rounded-lg border border-line bg-surface-2 p-4 text-sm text-ink-muted">
+      This page is kept for historical reference and is no longer updated.
+      For current information see the <a href={baseUrl('')}>home page</a> and the
+      <a href="https://ipython.readthedocs.io/">documentation</a>.
+    </aside>
+  </article>
+</PageLayout>

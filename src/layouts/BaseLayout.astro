@@ -9,27 +9,64 @@ import { baseUrl } from '../lib/utils';
 interface Props {
   title: string;
   description?: string;
+  /** Path to a social image under public/, defaults to og.png */
+  image?: string;
+  /** Set for the home page so the <title> is just "IPython". */
+  bare?: boolean;
 }
 
-const { title, description = 'IPython - Productive Interactive Computing' } = Astro.props;
+const {
+  title,
+  description = 'IPython is the enhanced interactive Python shell and the kernel behind Jupyter: tab completion, rich introspection, magic commands and a terminal that gets out of your way.',
+  image = 'og.png',
+  bare = false,
+} = Astro.props;
+
+const site = Astro.site ?? new URL('https://ipython.org');
+const canonical = new URL(Astro.url.pathname, site);
+const imageUrl = new URL(baseUrl(image), site);
+const fullTitle = bare ? 'IPython' : `${title} · IPython`;
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/png" href={baseUrl('ipython-logo.png')} />
     <link rel="apple-touch-icon" href={baseUrl('ipython-logo.png')} />
-    <title>{title} | IPython</title>
-    <meta name="description" content={description} />
+    <link rel="sitemap" href={baseUrl('sitemap-index.xml')} />
+    <meta name="theme-color" content="#0b1220" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="IPython" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={imageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
 
     <script is:inline>
-      // Prevent flash of wrong theme
-      const theme = localStorage.getItem('theme') || 'light';
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-      }
+      // Apply the stored light/dark mode and colour theme before first paint.
+      (function () {
+        try {
+          var mode = localStorage.getItem('theme') || 'auto';
+          var dark = mode === 'dark' || (mode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) document.documentElement.classList.add('dark');
+          var stored = localStorage.getItem('colorTheme');
+          if (stored) {
+            var id = stored;
+            try { var parsed = JSON.parse(stored); if (parsed && parsed.themeId) id = parsed.themeId; } catch (e) {}
+            if (id && id !== 'default' && id !== 'random') document.documentElement.setAttribute('data-color-theme', id);
+          }
+        } catch (e) {}
+      })();
     </script>
     <!-- Privacy-friendly analytics by Plausible -->
     <script async src="https://plausible.io/js/pa-_AAqKpTKNctdmTbfTzLPM.js"></script>
@@ -38,11 +75,31 @@ const { title, description = 'IPython - Productive Interactive Computing' } = As
       plausible.init()
     </script>
   </head>
-  <body class="bg-white dark:bg-ipython-dark text-gray-900 dark:text-gray-50">
+  <body class="min-h-screen bg-surface text-ink antialiased">
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:rounded-md focus:bg-surface focus:px-3 focus:py-2 focus:text-sm focus:shadow-lg">Skip to content</a>
     <SeasonalBanner client:load />
     <slot />
-    <ConditionalSnow client:load />
-    <ConditionalChristmas client:load />
-    <ConditionalOcean client:load />
+    <ConditionalSnow client:idle />
+    <ConditionalChristmas client:idle />
+    <ConditionalOcean client:idle />
+
+    <script>
+      // Copy-to-clipboard for any element with data-copy="text".
+      document.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement | null;
+        const btn = target?.closest<HTMLElement>('[data-copy]');
+        if (!btn) return;
+        const text = btn.dataset.copy ?? '';
+        navigator.clipboard?.writeText(text).then(() => {
+          const label = btn.textContent;
+          btn.textContent = 'Copied';
+          btn.classList.add('is-copied');
+          setTimeout(() => {
+            btn.textContent = label;
+            btn.classList.remove('is-copied');
+          }, 1600);
+        });
+      });
+    </script>
   </body>
 </html>

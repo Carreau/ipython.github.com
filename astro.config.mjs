@@ -1,33 +1,27 @@
 import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
+import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 
-// Get base path from environment variable
-// For GitHub Pages: if repo is username.github.io, use "" (root)
-// Otherwise use /repo-name (must start with / and not end with /)
-// Can be set via BASE_PATH env var or defaults to empty (root)
+// Base path is only needed when previewing under https://<owner>.github.io/<repo>/.
+// Production lives at the root of https://ipython.org.
 let base = process.env.BASE_PATH || "";
+if (base && !base.startsWith("/")) base = "/" + base;
+if (base.endsWith("/") && base !== "/") base = base.slice(0, -1);
 
-// Normalize base path: ensure it starts with / if not empty, and remove trailing /
-if (base && !base.startsWith('/')) {
-  base = '/' + base;
-}
-if (base.endsWith('/') && base !== '/') {
-  base = base.slice(0, -1);
-}
-
-// Construct site URL - GitHub Pages format
-const owner = process.env.GITHUB_REPOSITORY_OWNER || 'carreau';
-const site = base 
-  ? `https://${owner}.github.io${base}`
-  : `https://${owner}.github.io`;
+const site = process.env.SITE_URL || "https://ipython.org";
 
 export default defineConfig({
-  integrations: [react()],
+  site,
+  base,
+  output: "static",
+  trailingSlash: "ignore",
+  integrations: [react(), sitemap()],
   vite: {
     plugins: [tailwindcss()],
   },
-  base: base,
-  site: site,
-  output: "static",
+  redirects: {
+    "/features": "/learn",
+    "/get-started": "/learn",
+  },
 });

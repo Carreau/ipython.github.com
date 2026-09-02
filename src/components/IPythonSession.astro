@@ -1,0 +1,119 @@
+---
+/**
+ * Renders an IPython terminal transcript with the real prompt colours and
+ * Shiki-highlighted Python, at build time (no client JavaScript).
+ *
+ * Transcript conventions (leading indentation is stripped):
+ *   In [1]: code            -> green In prompt + highlighted code
+ *      ...: code            -> continuation prompt
+ *   Out[1]: value           -> red Out prompt + value
+ *   $ command               -> shell line
+ *   ipdb> command           -> debugger prompt
+ *   anything else           -> plain output (muted); lines that look like an
+ *                              exception name or a `---->` pointer are red.
+ * Inline markers, usable anywhere on a line:
+ *   {{ghost:text}}  autosuggestion ghost text    {{kbd:Tab}}  a key cap
+ *   {{cursor}}      blinking cursor              {{dim:text}} muted text
+ *   {{err:text}}    red text                     {{hl:text}}  orange highlight
+ */
+import { codeToTokens } from 'shiki';
+
+interface Props {
+  session: string;
+  /** Window title shown in the chrome; omit for a bare block. */
+  title?: string;
+  /** Hide the window chrome entirely. */
+  chrome?: boolean;
+  class?: string;
+}
+const { session, title, chrome = true, class: cls = '' } = Astro.props;
+
+function dedent(text: string): string[] {
+  const lines = text.replace(/\t/g, '    ').split('\n');
+  while (lines.length && lines[0].trim() === '') lines.shift();
+  while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
+  let min = Infinity;
+  for (const l of lines) {
+    if (l.trim() === '') continue;
+    const indent = l.match(/^ */)?.[0].length ?? 0;
+    min = Math.min(min, indent);
+  }
+  if (!isFinite(min)) min = 0;
+  return lines.map((l) => (l.trim() === '' ? '' : l.slice(min)));
+}
+
+const esc = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+const MARKER = /(\{\{(?:ghost|kbd|dim|err|hl):[^}]*\}\}|\{\{cursor\}\})/;
+
+function renderMarker(m: string): string {
+  if (m === '{{cursor}}') return '<span class="ipy-cursor" aria-hidden="true"></span>';
+  const [, kind, text] = m.match(/^\{\{(\w+):([^}]*)\}\}$/) ?? [];
+  if (!kind) return esc(m);
+  if (kind === 'kbd') return `<span class="ipy-kbd">${esc(text)}</span>`;
+  return `<span class="ipy-${kind}">${esc(text)}</span>`;
+}
+
+async function highlight(code: string): Promise<string> {
+  if (code.trim() === '') return esc(code);
+  const { tokens } = await codeToTokens(code, { lang: 'python', theme: 'github-dark-default' });
+  return tokens
+    .map((line) =>
+      line
+        .map((t) => (t.color ? `<span style="color:${t.color}">${esc(t.content)}</span>` : esc(t.content)))
+        .join(''),
+    )
+    .join('\n');
+}
+
+async function renderCode(text: string): Promise<string> {
+  const parts = text.split(MARKER);
+  const out: string[] = [];
+  for (const p of parts) {
+    if (!p) continue;
+    out.push(MARKER.test(p) && p.startsWith('{{') ? renderMarker(p) : await highlight(p));
+  }
+  return out.join('');
+}
+
+function renderPlain(text: string, cls: string): string {
+  const parts = text.split(MARKER);
+  return parts
+    .filter(Boolean)
+    .map((p) => (p.startsWith('{{') && MARKER.test(p) ? renderMarker(p) : `<span class="${cls}">${esc(p)}</span>`))
+    .join('');
+}
+
+const lines = dedent(session);
+const html: string[] = [];
+for (const line of lines) {
+  let m: RegExpMatchArray | null;
+  if ((m = line.match(/^(In \[\d+\]: ?)(.*)$/))) {
+    html.push(`<span class="ipy-in">${esc(m[1])}</span>${await renderCode(m[2])}`);
+  } else if ((m = line.match(/^(\s*\.\.\.: ?)(.*)$/))) {
+    html.push(`<span class="ipy-in">${esc(m[1])}</span>${await renderCode(m[2])}`);
+  } else if ((m = line.match(/^(Out\[\d+\]: ?)(.*)$/))) {
+    html.push(`<span class="ipy-out">${esc(m[1])}</span>${await renderCode(m[2])}`);
+  } else if ((m = line.match(/^(\$ )(.*)$/))) {
+    html.push(`<span class="ipy-shell">${esc(m[1])}</span>${renderPlain(m[2], '')}`);
+  } else if ((m = line.match(/^(ipdb> )(.*)$/))) {
+    html.push(`<span class="ipy-ipdb">${esc(m[1])}</span>${await renderCode(m[2])}`);
+  } else if (/^([A-Z]\w*(Error|Exception|Warning)\b|-{5,}|-+> )/.test(line)) {
+    html.push(renderPlain(line, 'ipy-err'));
+  } else {
+    html.push(renderPlain(line, 'ipy-text'));
+  }
+}
+const body = html.join('\n');
+---
+
+<figure class:list={['ipy-session', cls]}>
+  {chrome && (
+    <figcaption class="ipy-chrome">
+      <span class="ipy-dots" aria-hidden="true"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></span>
+      <span class="ml-2 truncate">{title ?? 'ipython'}</span>
+    </figcaption>
+  )}
+  <pre><code set:html={body} /></pre>
+</figure>

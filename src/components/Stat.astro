@@ -1,0 +1,17 @@
+---
+/** A single figure with a label, for fact strips. */
+interface Props {
+  value: string;
+  label: string;
+  sub?: string;
+  href?: string;
+}
+const { value, label, sub, href } = Astro.props;
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag href={href} class="block no-underline" target={href?.startsWith('http') ? '_blank' : undefined} rel={href?.startsWith('http') ? 'noopener' : undefined}>
+  <p class="font-mono text-2xl font-semibold text-ink sm:text-3xl">{value}</p>
+  <p class="mt-1 text-sm font-medium text-ink-muted">{label}</p>
+  {sub && <p class="mt-0.5 text-xs text-ink-faint">{sub}</p>}
+</Tag>
